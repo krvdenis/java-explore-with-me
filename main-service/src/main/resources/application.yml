@@ -18,7 +18,7 @@ server:
 logging:
   level:
     ru:
-      practicum: INFO
+      practicum: DEBUG
     org:
       springframework:
         orm:
