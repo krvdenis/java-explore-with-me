@@ -22,6 +22,7 @@ public final class EventMapper {
         return Event.builder()
                 .annotation(newEventDto.getAnnotation())
                 .category(category)
+                .confirmedRequests(0L)
                 .createdOn(LocalDateTime.now())
                 .description(newEventDto.getDescription())
                 .eventDate(newEventDto.getEventDate())

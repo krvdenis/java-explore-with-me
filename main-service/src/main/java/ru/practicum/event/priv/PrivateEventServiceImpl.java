@@ -54,6 +54,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     @Transactional
     @SuppressWarnings("ConstantConditions")
     public EventFullDto createEvent(long userId, NewEventDto newEventDto) {
+        log.info("Получен запрос на создание события от пользователя ID: {}", userId);
         User user = userService.getUserById(userId);
         Category category = categoryService.getCategoryById(newEventDto.getCategory());
 
@@ -72,10 +73,13 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     @Override
     public EventFullDto getOwnedEventDtoById(long userId, long eventId) {
 //        userService.checkUserExists(userId);
+        log.info("Получен запрос пользователя ID: {} на просмотр полной информации о своем событии ID: {}", userId, eventId);
 
         Event event = getOwnedEventById(userId, eventId);
         EventFullDto eventFullDto = EventMapper.mapToFullDto(event);
         eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(eventId));
+
+        log.info("Успешно получена полная информация о событии ID: {} для пользователя ID: {}", eventId, userId);
         return eventFullDto;
     }
 
@@ -83,11 +87,14 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     @Override
     public List<EventShortDto> getOwnedEvents(long userId, int from, int size) {
 //        userService.checkUserExists(userId);
+        log.info("Получен запрос на просмотр списка событий пользователя ID: {} (от: {}, размер: {})", userId, from, size);
 
         int page = from / size;
         Sort sort = Sort.by("eventDate");
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<EventShort> eventPage = eventRepository.findAllByInitiatorId(userId, pageable);
+
+        log.debug("Из репозитория получено страниц: {}, всего элементов: {}", eventPage.getTotalPages(), eventPage.getTotalElements());
 
         Map<Long, EventShort> eventShortMap = eventPage.getContent().stream()
                 .collect(Collectors.toMap(EventShort::getId, Function.identity()));
@@ -121,6 +128,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
                 })
                 .toList();
 
+        log.info("Успешно сформирован краткий список из {} событий пользователя ID: {}", eventShortDtos.size(), userId);
         return eventShortDtos;
     }
 
@@ -128,6 +136,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     @Transactional
     public EventFullDto updateEvent(long userId, long eventId, UpdateEventUserRequest updateEventUserRequest) {
 //        userService.checkUserExists(userId);
+        log.info("Получен запрос на обновление события ID: {} пользователем ID: {}", eventId, userId);
 
         Event event = getOwnedEventById(userId, eventId);
 
@@ -140,11 +149,13 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         if (updateEventUserRequest.hasCategory()) {
             Category category = categoryService.getCategoryById(updateEventUserRequest.getCategory());
             event.setCategory(category);
+            log.debug("В событии ID: {} обновлена категория", eventId);
         }
 
         EventMapper.updateEventFields(event, updateEventUserRequest);
 
         if (updateEventUserRequest.hasStateAction()) {
+            log.debug("Обработка изменения статуса события ID: {} на действие: {}", eventId, updateEventUserRequest.getStateAction());
             switch (updateEventUserRequest.getStateAction()) {
                 case SEND_TO_REVIEW -> event.setState(State.PENDING);
                 case CANCEL_REVIEW -> event.setState(State.CANCELED);
@@ -153,11 +164,14 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
         EventFullDto eventFullDto = EventMapper.mapToFullDto(event);
         eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(eventId));
+
+        log.info("Событие ID: {} пользователя ID: {} успешно обновлено", eventId, userId);
         return eventFullDto;
     }
 
     private static void validateEventState(Event event) {
         if (event.getState() == State.PUBLISHED) {
+            log.warn("Валидация изменения статуса провалена: событие ID: {} уже имеет статус PUBLISHED", event.getId());
             throw new ConditionsNotMetException("Only pending or canceled events can be changed");
         }
     }
@@ -165,11 +179,14 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     @Override
     public List<ParticipationRequestDto> getEventRequestsForInitiator(long userId, long eventId) {
 //        userService.checkUserExists(userId);
+        log.info("Получен запрос инициатора ID: {} на выгрузку заявок к событию ID: {}", userId, eventId);
         if (!eventRepository.existsByIdAndInitiatorId(eventId, userId)) {
+            log.warn("Событие ID: {} с инициатором ID: {} не существует", eventId, userId);
             throw new NotFoundException(String.format("Event with ID %s was not found", eventId));
         }
 
         List<ParticipationRequestDto> requestDtos = requestService.getEventRequestsByInitiator(eventId);
+        log.info("Для события ID: {} найдено {} заявок", eventId, requestDtos.size());
         return requestDtos;
     }
 
@@ -178,13 +195,17 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             long userId,
             long eventId,
             EventRequestStatusUpdateRequest statusUpdateRequest) {
+        log.info("Получен запрос от инициатора ID: {} на изменение статуса заявок к событию ID: {}", userId, eventId);
 
         Event event = getOwnedEventById(userId, eventId);
         if (event.isParticipantLimitReached()) {
+            log.warn("Изменение статуса заявок прервано: для события ID: {} достигнут лимит участников", eventId);
             throw new ConditionsNotMetException("The participant limit for this event has been reached.");
         }
 
         long availableSlots = event.getParticipantLimit() - event.getConfirmedRequests();
+        log.debug("Событие ID: {}, доступно свободных слотов для подтверждения: {}", eventId, availableSlots);
+
         EventRequestStatusUpdateResult eventRequestStatusUpdateResult = requestService.changeRequestsStatusByInitiator(
                 statusUpdateRequest,
                 availableSlots
@@ -199,16 +220,22 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             event.incrementConfirmedRequests();
             countConfirmedRequest++;
         }
+        log.info("Успешно обновлены статусы заявок для события ID: {}. Число подтвержденных счетчиков увеличено на {}", eventId, countConfirmedRequest);
         return eventRequestStatusUpdateResult;
     }
 
     private Event getOwnedEventById(long userId, long eventId) {
+        log.debug("Поиск события по ID: {} и инициатору ID: {}", eventId, userId);
         return eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new NotFoundException(String.format("Event with ID %s was not found", eventId)));
+                .orElseThrow(() -> {
+                    log.warn("Событие ID: {} у инициатора ID: {} не найдено", eventId, userId);
+                    return new NotFoundException(String.format("Event with ID %s was not found", eventId));
+                });
     }
 
     private static void validateEventDate(LocalDateTime eventDate) {
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
+            log.warn("Валидация даты провалена: дата события {} должна быть минимум на 2 часа позже текущего момента", eventDate);
             throw new ConditionsNotMetException(String.format("Field: eventDate. Error: must be at least 2 hours in" +
                     " the future from the current moment. Value: %s", eventDate));
         }

@@ -42,22 +42,34 @@ public class PublicEventServiceImpl implements PublicEventService {
 
     @Override
     public EventFullDto getPublishedEventDtoById(long eventId) {
+        log.info("Получен публичный запрос на получение DTO события по ID: {}", eventId);
+
         Event event = getPublishedEventById(eventId);
         EventFullDto eventFullDto = EventMapper.mapToFullDto(event);
         eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(eventId));
+
+        log.info("Успешно сформировано DTO для опубликованного события ID: {}", eventId);
         return eventFullDto;
     }
 
     @Override
     public Event getPublishedEventById(long eventId) {
+        log.debug("Поиск опубликованного события по ID: {}", eventId);
         return eventRepository.findByIdAndState(eventId, PUBLISHED)
-                .orElseThrow(() -> new NotFoundException(String.format("Event with ID %s was not found", eventId)));
+                .orElseThrow(() -> {
+                    log.warn("Опубликованное событие с ID: {} не найдено", eventId);
+                    return new NotFoundException(String.format("Event with ID %s was not found", eventId));
+                });
     }
 
     @Override
     public Event getEventEntityById(long eventId) {
+        log.debug("Поиск сущности события по ID: {}", eventId);
         return eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(String.format("Event with ID %s was not found", eventId)));
+                .orElseThrow(() -> {
+                    log.warn("Событие с ID: {} не найдено", eventId);
+                    return new NotFoundException(String.format("Event with ID %s was not found", eventId));
+                });
     }
 
 
@@ -81,6 +93,9 @@ public class PublicEventServiceImpl implements PublicEventService {
             int from,
             int size) {
 
+        log.info("Получен публичный поисковый запрос событий. Параметры: text='{}', categories={}, paid={}, rangeStart={}, rangeEnd={}, onlyAvailable={}, sort={}, from={}, size={}",
+                text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+
         LocalDateTime now = LocalDateTime.now();
         List<Long> filteredCategories = (categories == null) ? List.of() : categories.stream()
                 .filter(Objects::nonNull)
@@ -92,11 +107,13 @@ public class PublicEventServiceImpl implements PublicEventService {
         buildQuery(text, paid, rangeStart, rangeEnd, onlyAvailable, builder, qEvent, filteredCategories, now);
 
         Pageable pageable = pageable = PageRequest.of(from / size, size);
+        log.debug("Сформирован QueryDSL builder для поиска");
 
         Map<Long, EventShort> eventMap = eventRepository.findAllShortBy(builder, pageable).getContent().stream()
                 .collect(Collectors.toMap(EventShort::getId, Function.identity()));
 
         if (eventMap.isEmpty()) {
+            log.info("Список найденных событий пуст");
             return List.of();
         }
 
@@ -104,6 +121,7 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .map(evenId -> String.format(EventStatsHelper.EVENT_URI_TEMPLATE, evenId))
                 .toList();
 
+        log.debug("Запрос статистики просмотров для {} URI", uris.size());
         Map<Long, ViewStatsDto> eventIdToViewStats = eventStatsHelper.getViewStatsDtos(
                         LocalDateTime.now().minusYears(5),
                         LocalDateTime.now().plusYears(5),
@@ -117,11 +135,11 @@ public class PublicEventServiceImpl implements PublicEventService {
                         },
                         Function.identity()));
 
-
         List<EventShortDto> eventShortDtos = eventMap.values().stream()
                 .map(event -> {
                     EventShortDto dto = EventMapper.mapToShortDto(event);
-                    Long views = eventIdToViewStats.get(event.getId()).getHits();
+                    ViewStatsDto viewStats = eventIdToViewStats.get(event.getId());
+                    Long views = viewStats == null ? 0L : viewStats.getHits();
                     dto.setViews(views);
                     return dto;
                 })
@@ -129,6 +147,7 @@ public class PublicEventServiceImpl implements PublicEventService {
 
         Comparator<EventShortDto> comparator = null;
         if (sort != null) {
+            log.debug("Применение сортировки по типу: {}", sort);
             switch (sort) {
                 case EVENT_DATE -> comparator = Comparator.comparing(EventShortDto::getEventDate);
                 case VIEWS -> comparator = Comparator.comparing(EventShortDto::getViews).reversed();
@@ -136,9 +155,11 @@ public class PublicEventServiceImpl implements PublicEventService {
         }
 
         if (comparator == null) {
+            log.info("Возврат несортированного списка из {} элементов", eventShortDtos.size());
             return eventShortDtos;
         }
 
+        log.info("Возврат отсортированного списка из {} элементов", eventShortDtos.size());
         return eventShortDtos.stream()
                 .sorted(comparator)
                 .toList();
@@ -154,6 +175,8 @@ public class PublicEventServiceImpl implements PublicEventService {
             QEvent qEvent,
             List<Long> filteredCategories,
             LocalDateTime now) {
+
+        log.debug("Сборка динамического QueryDSL-запроса");
 
         if (text != null) {
             builder.and(qEvent.annotation.containsIgnoreCase(text));
