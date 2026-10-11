@@ -15,12 +15,12 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "endpoint_hits")
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "endpoint_hits")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EndpointHit {
     @Id

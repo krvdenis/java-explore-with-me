@@ -19,6 +19,5 @@ public class ApiError {
     String status;
     String reason;
     String message;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime timestamp;
 }

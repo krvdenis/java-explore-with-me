@@ -22,21 +22,22 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
-public class UserController {
+public class AdminUserController {
+    public static final String PATH_USER_ID = "/{userId}";
     private final UserService userService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@Valid @RequestBody NewUserRequest dto) {
-        log.info("Запрос на создание пользователя {}", dto);
-        return userService.create(dto);
+    public UserDto createUser(@Valid @RequestBody NewUserRequest newUserRequest) {
+        log.info("Запрос на создание пользователя {}", newUserRequest);
+        return userService.createUser(newUserRequest);
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping(PATH_USER_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable long userId) {
+    public void deleteUserById(@PathVariable long userId) {
         log.info("Запрос на удаление пользователя с ID = {}", userId);
-        userService.delete(userId);
+        userService.deleteUserById(userId);
     }
 
     @GetMapping

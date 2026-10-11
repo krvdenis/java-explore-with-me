@@ -14,8 +14,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@Transactional(readOnly = true)
 @Slf4j
+@RequiredArgsConstructor
 public class StatsServiceImpl implements StatsService {
     private final EndpointHitRepository repository;
 
@@ -29,7 +30,6 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         validateDate(start, end);
 

@@ -2,67 +2,87 @@ package ru.practicum.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.mapper.UserMapper;
 import ru.practicum.user.model.User;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
-@Slf4j
 @Transactional
+@Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDto create(NewUserRequest dto) {
+    public UserDto createUser(NewUserRequest newUserRequest) {
         log.info("Создание записи с данными нового пользователя в БД");
-        User user = UserMapper.mapToUser(dto);
+        User user = UserMapper.mapToUser(newUserRequest);
         UserDto userDto = UserMapper.mapToDto(userRepository.save(user));
-        log.debug("Пользователь успешно сохранен с ID {}", userDto.getId());
+        log.debug("Сгенерирован ID {} для нового пользователя", userDto.getId());
         return userDto;
-    }
-
-    @Override
-    public void delete(long id) {
-        log.info("Удаление данных пользователя с ID {} из БД", id);
-        userRepository.deleteById(id);
-        log.debug("Пользователь с ID {} успешно удалён из БД", id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Long> ids, int from, int size) {
-        if (ids != null && !ids.isEmpty()) {
-            log.info("Получение списка пользователей по списку ID - {}", ids);
-            List<User> users = userRepository.findAllById(ids);
-            if (users.isEmpty()) {
-                log.debug("Пользователи не найдены. Возвращается пустой список");
-                return List.of();
-            }
-            List<UserDto> userDtos = users.stream()
+
+        List<Long> filteredIds = (ids == null) ? List.of() : ids.stream()
+                .filter(Objects::nonNull)
+                .toList();
+
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id"));
+
+        if (!filteredIds.isEmpty()) {
+            log.info("Получение списка пользователей по списку ID размером {}", filteredIds.size());
+            List<UserDto> userDtos = userRepository.findAllByIdIn(filteredIds, pageable).getContent()
+                    .stream()
                     .map(UserMapper::mapToDto)
                     .toList();
-            log.debug("Отправляется список из {} пользователей", userDtos.size());
+            log.debug("Получен список из {} пользователей", userDtos.size());
             return userDtos;
         }
 
         log.info("Получение списка всех пользователей from = {}, size = {}", from, size);
-        Sort sort = Sort.by("id");
-        Pageable pageable = PageRequest.of(from, size, sort);
-        Page<User> userPage = userRepository.findAll(pageable);
-        List<UserDto> userDtos = userPage.getContent().stream()
+
+        List<UserDto> userDtos = userRepository.findAll(pageable).getContent()
+                .stream()
                 .map(UserMapper::mapToDto)
                 .toList();
-        log.debug("Отправляется список из {} пользователей", userDtos.size());
+        log.debug("Получен список из {} пользователей", userDtos.size());
         return userDtos;
+    }
+
+    @Override
+    public User getUserById(long id) {
+        log.info("Запрос на получение информации о пользователе с ID {}", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("User with ID %s was not found", id)));
+        log.debug("Получена информация о пользователе с ID {}", id);
+        return user;
+    }
+
+    @Override
+    public void deleteUserById(long id) {
+        log.info("Удаление данных пользователя с ID {} из БД", id);
+        userRepository.deleteById(id);
+        log.debug("Запрос на удаление пользователя с ID {} обработан", id);
+    }
+
+
+    @Override
+    public void checkUserExists(long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException(String.format("User with ID %s not found", userId));
+        }
     }
 }
