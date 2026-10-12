@@ -42,10 +42,19 @@ public class RequestServiceImpl implements RequestService {
 
         User user = userService.getUserById(userId);
         Event event = eventService.getEventEntityById(eventId);
+        log.info("Количество свободных мест для заявок - {}",
+                event.getParticipantLimit() - event.getConfirmedRequests());
 
         validateParticipationRequest(userId, eventId, event);
 
-        boolean isAutoConfirm = event.getParticipantLimit() == 0 || !Boolean.TRUE.equals(event.getRequestModeration());
+        boolean isAutoConfirm = false;
+
+        if (event.getParticipantLimit() == 0) {
+            isAutoConfirm = true;
+        } else if (event.getRequestModeration().equals(Boolean.FALSE)) {
+            isAutoConfirm = true;
+        }
+
         RequestStatus initialStatus = isAutoConfirm ? RequestStatus.CONFIRMED : RequestStatus.PENDING;
 
         log.debug("Определен начальный статус заявки: {}, автоподтверждение: {}", initialStatus, isAutoConfirm);
@@ -57,10 +66,10 @@ public class RequestServiceImpl implements RequestService {
                 .status(initialStatus)
                 .build();
 
-        if (request.getStatus().equals(RequestStatus.CONFIRMED)) {
-            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-            log.debug("Количество подтвержденных заявок для события ID: {} увеличено до: {}", eventId, event.getConfirmedRequests());
+        if (request.getStatus() == RequestStatus.CONFIRMED) {
+            event.incrementConfirmedRequests();
         }
+        log.debug("Количество подтвержденных заявок для события ID: {} увеличено до: {}", eventId, event.getConfirmedRequests());
 
         ParticipationRequestDto requestDto = ParticipationRequestMapper.mapToDto(requestRepository.save(request));
         log.info("Заявка успешно создана и сохранена с ID: {}", requestDto.getId());
@@ -96,11 +105,17 @@ public class RequestServiceImpl implements RequestService {
                     "their own event.");
         }
 
-        Event event = request.getEvent();
         if (request.getStatus() == RequestStatus.CONFIRMED) {
-            request.getEvent().decrementConfirmedRequests();
-            log.debug("У заявки был статус CONFIRMED. Количество подтвержденных мест для события ID: {} уменьшено", request.getEvent().getId());
+            throw new ConditionsNotMetException(String.format("Request with id=%d cannot be changed because it " +
+                    "already has status CONFIRMED.", request.getId())
+            );
         }
+
+//        Event event = request.getEvent();
+//        if (request.getStatus() == RequestStatus.CONFIRMED) {
+//            event.decrementConfirmedRequests();
+//            log.debug("У заявки был статус CONFIRMED. Количество подтвержденных мест для события ID: {} уменьшено", event.getId());
+//        }
 
         request.setStatus(RequestStatus.CANCELED);
         log.info("Статус заявки ID: {} успешно изменен на CANCELED", requestId);
@@ -123,7 +138,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public EventRequestStatusUpdateResult changeRequestsStatusByInitiator(
+    public EventRequestStatusUpdateResult changeRequestsStatusByOwnerEvent(
             EventRequestStatusUpdateRequest statusUpdateRequest,
             long availableSlots
     ) {
@@ -142,8 +157,8 @@ public class RequestServiceImpl implements RequestService {
             throw new ConditionsNotMetException("Only pending requests can be processed.");
         }
 
-        if (requiredStatus == RequestStatus.CANCELED) {
-            requests.forEach(request -> request.setStatus(RequestStatus.CANCELED));
+        if (requiredStatus == RequestStatus.REJECTED) {
+            requests.forEach(request -> request.setStatus(RequestStatus.REJECTED));
             log.info("Все {} заявок были отменены инициатором", requests.size());
             return EventRequestStatusUpdateResult.builder()
                     .confirmedRequests(List.of())
@@ -151,10 +166,9 @@ public class RequestServiceImpl implements RequestService {
                             .map(ParticipationRequestMapper::mapToDto)
                             .toList())
                     .build();
-        } else if (requiredStatus == RequestStatus.CONFIRMED) {
-            log.debug("Начало процесса подтверждения заявок");
         }
 
+        log.debug("Начало процесса подтверждения заявок");
         List<ParticipationRequest> requestsToChange = new ArrayList<>();
         List<ParticipationRequest> requestsToReject = new ArrayList<>();
 
@@ -167,7 +181,7 @@ public class RequestServiceImpl implements RequestService {
         }
 
         requestsToChange.forEach(request -> request.setStatus(requiredStatus));
-        requestsToReject.forEach(request -> request.setStatus(RequestStatus.CANCELED));
+        requestsToReject.forEach(request -> request.setStatus(RequestStatus.REJECTED));
 
         log.info("Обработка завершена. Подтверждено заявок: {}, отклонено/отменено: {}", requestsToChange.size(), requestsToReject.size());
 
@@ -204,12 +218,13 @@ public class RequestServiceImpl implements RequestService {
             throw new ConditionsNotMetException("You cannot participate in an unpublished event.");
         }
 
-        if (event.getRequestModeration().equals(Boolean.FALSE)) {
-            if (event.isParticipantLimitReached()) {
-                log.warn("Валидация провалена: лимит участников для события ID: {} исчерпан", eventId);
-                throw new ConditionsNotMetException("The participant limit for this event has been reached.");
-            }
+
+        if (event.isParticipantLimitReached()) {
+            log.warn("Валидация провалена: лимит участников для события ID: {} исчерпан", eventId);
+            throw new ConditionsNotMetException("The participant limit for this event has been reached.");
         }
+
+
         log.debug("Валидация для пользователя ID: {} и события ID: {} успешно пройдена", userId, eventId);
     }
 }

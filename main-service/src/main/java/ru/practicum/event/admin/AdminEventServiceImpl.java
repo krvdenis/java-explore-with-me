@@ -24,6 +24,7 @@ import ru.practicum.event.common.repository.EventRepository;
 import ru.practicum.event.common.util.EventStatsHelper;
 import ru.practicum.exception.ConditionsNotMetException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.ValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +47,10 @@ public class AdminEventServiceImpl implements AdminEventService {
     @Transactional
     public EventFullDto updateEvent(long eventId, UpdateEventAdminRequest updateEventAdminRequest) {
         log.info("Получен запрос администратора на обновление события с ID: {}", eventId);
+
+//        if (updateEventAdminRequest.getEventDate() != null && updateEventAdminRequest.getEventDate().isBefore(LocalDateTime.now())) {
+//            throw new ValidationException("The event date cannot be in the past.");
+//        }
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> {
@@ -102,6 +107,9 @@ public class AdminEventServiceImpl implements AdminEventService {
         log.info("Получен запрос администратора на поиск событий по фильтрам. Покупатели/Инициаторы: {}, Статусы: {}, Категории: {}, Начало: {}, Конец: {}, Смещении от: {}, Размер страницы: {}",
                 users, states, categories, rangeStart, rangeEnd, from, size);
 
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new ValidationException("The start date of the search range must be before the end date.");
+        }
         List<Long> filteredUsers = (users == null) ? List.of() : users.stream()
                 .filter(Objects::nonNull)
                 .toList();

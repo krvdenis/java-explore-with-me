@@ -25,7 +25,7 @@ public class PrivateRequestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto createRequest(@PathVariable long userId,
-                                                 @RequestParam long eventId) { //очень много условий в swagger
+                                                 @RequestParam long eventId) {
         log.info("Создание запроса от пользователя с ID {} на участие в событии с ID {}",
                 userId, eventId);
         return requestService.create(userId, eventId);

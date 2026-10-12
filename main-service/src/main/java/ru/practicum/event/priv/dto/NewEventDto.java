@@ -1,6 +1,7 @@
 package ru.practicum.event.priv.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -40,6 +41,7 @@ public class NewEventDto {
 
     @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Constants.DATE_TIME_PATTERN)
+    @Future
     LocalDateTime eventDate;
 
     @NotNull
@@ -50,7 +52,7 @@ public class NewEventDto {
     @PositiveOrZero
     long participantLimit;
 
-    boolean requestModeration = true;
+    Boolean requestModeration;
 
     @NotBlank
     @Size(max = 120, message = "The title must not exceed 120 characters.")

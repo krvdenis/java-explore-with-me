@@ -46,7 +46,7 @@ public class PublicEventController {
             @RequestParam(defaultValue = "0") int from,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
-        log.info("Запрос на получение информации о опубликованных событиях");
+        log.info("Запрос на получение информации об опубликованных событиях");
         registerHit(request);
         return publicEventService.getPublishedEvents(
                 text,

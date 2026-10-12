@@ -1,7 +1,6 @@
 package ru.practicum.event.common.repository;
 
 import com.querydsl.core.types.Predicate;
-import jakarta.persistence.Query;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,8 +14,6 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event> {
 
     Page<EventShort> findAllByInitiatorId(long initiatorId, Pageable pageable);
-
-    Page<EventShort> findAllShortBy(Predicate predicate, Pageable pageable);
 
     boolean existsByIdAndInitiatorId(long eventId, long initiatorId);
 

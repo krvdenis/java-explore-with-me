@@ -1,8 +1,8 @@
 package ru.practicum.event.admin;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,9 +27,9 @@ public class AdminEventController {
     @PatchMapping("/{eventId}")
     public EventFullDto updateEvent(
             @PathVariable long eventId,
-            @RequestBody UpdateEventAdminRequest updateEventAdminRequest
+            @Valid @RequestBody UpdateEventAdminRequest updateEventAdminRequest
     ) {
-        log.info("Запрос админа на редактирование данных события с ID {} и его статуса", eventId);
+        log.info("Запрос админа на редактирование данных события с ID {} и его статуса {}", eventId, updateEventAdminRequest);
         return adminEventService.updateEvent(eventId, updateEventAdminRequest);
     }
 

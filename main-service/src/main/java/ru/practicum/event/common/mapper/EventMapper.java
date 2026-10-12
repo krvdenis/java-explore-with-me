@@ -30,7 +30,7 @@ public final class EventMapper {
                 .location(newEventDto.getLocation())
                 .paid(newEventDto.isPaid())
                 .participantLimit(newEventDto.getParticipantLimit())
-                .requestModeration(newEventDto.isRequestModeration())
+                .requestModeration(newEventDto.getRequestModeration())
                 .state(State.PENDING)
                 .title(newEventDto.getTitle())
                 .build();
@@ -57,6 +57,19 @@ public final class EventMapper {
     }
 
     public static EventShortDto mapToShortDto(EventShort event) {
+        return EventShortDto.builder()
+                .annotation(event.getAnnotation())
+                .category(CategoryMapper.mapToDto(event.getCategory()))
+                .confirmedRequests(event.getConfirmedRequests())
+                .eventDate(event.getEventDate())
+                .id(event.getId())
+                .initiator((UserMapper.mapToShortDto(event.getInitiator())))
+                .paid(event.getPaid())
+                .title(event.getTitle())
+                .build();
+    }
+
+    public static EventShortDto mapToShortDto(Event event) {
         return EventShortDto.builder()
                 .annotation(event.getAnnotation())
                 .category(CategoryMapper.mapToDto(event.getCategory()))

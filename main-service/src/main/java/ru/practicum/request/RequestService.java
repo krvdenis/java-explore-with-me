@@ -15,7 +15,7 @@ public interface RequestService {
 
     List<ParticipationRequestDto> getEventRequestsByInitiator(long eventId);
 
-    EventRequestStatusUpdateResult changeRequestsStatusByInitiator(
+    EventRequestStatusUpdateResult changeRequestsStatusByOwnerEvent(
             EventRequestStatusUpdateRequest statusUpdateRequest,
             long availableSlots
     );

@@ -21,6 +21,7 @@ import ru.practicum.event.common.repository.EventRepository;
 import ru.practicum.event.common.util.EventStatsHelper;
 import ru.practicum.event.pub.enums.EventSort;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.ValidationException;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -96,6 +97,10 @@ public class PublicEventServiceImpl implements PublicEventService {
         log.info("Получен публичный поисковый запрос событий. Параметры: text='{}', categories={}, paid={}, rangeStart={}, rangeEnd={}, onlyAvailable={}, sort={}, from={}, size={}",
                 text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
 
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new ValidationException("The start date of the search range must be before the end date.");
+        }
+
         LocalDateTime now = LocalDateTime.now();
         List<Long> filteredCategories = (categories == null) ? List.of() : categories.stream()
                 .filter(Objects::nonNull)
@@ -109,8 +114,8 @@ public class PublicEventServiceImpl implements PublicEventService {
         Pageable pageable = pageable = PageRequest.of(from / size, size);
         log.debug("Сформирован QueryDSL builder для поиска");
 
-        Map<Long, EventShort> eventMap = eventRepository.findAllShortBy(builder, pageable).getContent().stream()
-                .collect(Collectors.toMap(EventShort::getId, Function.identity()));
+        Map<Long, Event> eventMap = eventRepository.findAll(builder, pageable).getContent().stream()
+                .collect(Collectors.toMap(Event::getId, Function.identity()));
 
         if (eventMap.isEmpty()) {
             log.info("Список найденных событий пуст");
@@ -179,8 +184,7 @@ public class PublicEventServiceImpl implements PublicEventService {
         log.debug("Сборка динамического QueryDSL-запроса");
 
         if (text != null) {
-            builder.and(qEvent.annotation.containsIgnoreCase(text));
-            builder.and((qEvent.description.containsIgnoreCase(text)));
+            builder.and((qEvent.annotation.containsIgnoreCase(text)).or(qEvent.description.containsIgnoreCase(text)));
         }
 
         if (!filteredCategories.isEmpty()) {

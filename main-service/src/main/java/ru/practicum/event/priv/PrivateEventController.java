@@ -76,9 +76,9 @@ public class PrivateEventController {
     public EventRequestStatusUpdateResult changeRequestsStatus(
             @PathVariable long userId,
             @PathVariable long eventId,
-            EventRequestStatusUpdateRequest statusUpdateRequest) {
+            @Valid @RequestBody EventRequestStatusUpdateRequest statusUpdateRequest) {
         log.info("Запрос на изменения статуса заявок на событие с ID {} пользователя с ID {} на {}",
-                eventId, userId, statusUpdateRequest.getStatus());
+                eventId, userId, statusUpdateRequest);
         return eventService.changeRequestsStatusForInitiator(userId, eventId, statusUpdateRequest);
     }
 }

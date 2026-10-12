@@ -45,7 +45,7 @@ public class ParticipationRequest { //А нужна ли для этой сущ�
     Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requster_id", nullable = false)
+    @JoinColumn(name = "requester_id", nullable = false)
     User requester;
 
     @Column(nullable = false)

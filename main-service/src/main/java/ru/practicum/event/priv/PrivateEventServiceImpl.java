@@ -62,6 +62,11 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
         log.info("Инфо о юзере {}",user);
         Event event = EventMapper.mapToEvent(newEventDto, user, category);
+        if (newEventDto.getRequestModeration() == null) {
+            event.setRequestModeration(true);
+        } else {
+            event.setRequestModeration(newEventDto.getRequestModeration());
+        }
         log.info("Инфо о инициаторе события {}",event.getInitiator().getId());
         EventFullDto eventFullDto = EventMapper.mapToFullDto(eventRepository.save(event));
         eventFullDto.setViews(0L);
@@ -191,6 +196,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     }
 
     @Override
+    @Transactional
     public EventRequestStatusUpdateResult changeRequestsStatusForInitiator(
             long userId,
             long eventId,
@@ -206,11 +212,10 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         long availableSlots = event.getParticipantLimit() - event.getConfirmedRequests();
         log.debug("Событие ID: {}, доступно свободных слотов для подтверждения: {}", eventId, availableSlots);
 
-        EventRequestStatusUpdateResult eventRequestStatusUpdateResult = requestService.changeRequestsStatusByInitiator(
+        EventRequestStatusUpdateResult eventRequestStatusUpdateResult = requestService.changeRequestsStatusByOwnerEvent(
                 statusUpdateRequest,
                 availableSlots
         );
-
 
         List<ParticipationRequestDto> confirmedRequests = eventRequestStatusUpdateResult.getConfirmedRequests();
 
@@ -220,7 +225,9 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             event.incrementConfirmedRequests();
             countConfirmedRequest++;
         }
-        log.info("Успешно обновлены статусы заявок для события ID: {}. Число подтвержденных счетчиков увеличено на {}", eventId, countConfirmedRequest);
+        log.info("Количество подтвержденных заявок {}", event.getConfirmedRequests());
+        log.info("Успешно обновлены статусы заявок для события ID: {}. Число подтвержденных счетчиков увеличено на {}",
+                eventId, countConfirmedRequest);
         return eventRequestStatusUpdateResult;
     }
 
