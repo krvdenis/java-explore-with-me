@@ -115,6 +115,16 @@ public class PublicCompilationServiceImpl implements PublicCompilationService {
                 .map(eventId -> String.format(EventStatsHelper.EVENT_URI_TEMPLATE, eventId))
                 .toList();
 
+        if (uris.isEmpty()) {
+            log.info("В найденных подборках нет событий. Запрос к серверу статистики пропущен.");
+            return compilations.stream()
+                    .map(compilation -> {
+                        CompilationDto compilationDto = CompilationMapper.mapToDto(compilation);
+                        compilationDto.setEvents(Set.of());
+                        return compilationDto;
+                    }).collect(Collectors.toList());
+        }
+
         log.info("Запрос статистики просмотров для {} уникальных URI из всех подборок", uris.size());
         Map<Long, ViewStatsDto> eventIdToViewStats = eventStatsHelper.getViewStatsDtos(
                         START_OF_TIME,

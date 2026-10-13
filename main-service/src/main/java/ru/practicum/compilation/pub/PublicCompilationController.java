@@ -21,18 +21,19 @@ import static ru.practicum.util.Constants.PATH_COMPILATION_ID;
 public class PublicCompilationController {
     private final PublicCompilationService compilationService;
 
+    @GetMapping
+    public List<CompilationDto> getCompilations(
+            @RequestParam(required = false) Boolean pinned,
+            @RequestParam(defaultValue = "0") int from,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Запрос на получение информации о подборках: pinned - {}, from - {}, size - {}", pinned, from, size);
+        return compilationService.getCompilations(pinned, from, size);
+    }
+
     @GetMapping(PATH_COMPILATION_ID)
     public CompilationDto getCompilationById(@PathVariable long compId) {
         log.info("Запрос на получение информации о подборке с ID {}", compId);
         return compilationService.getCompilationById(compId);
     }
 
-    @GetMapping
-    public List<CompilationDto> getCompilations(
-            @RequestParam(required = false) Boolean pinned,
-            @RequestParam(defaultValue = "0") int from,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("Запрос на получение информации о событиях: pinned - {}, from - {}, size - {}", pinned, from, size);
-        return compilationService.getCompilations(pinned, from, size);
-    }
 }
