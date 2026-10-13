@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true)
 public class EventStatsHelper {
-    public static String EVENT_URI_TEMPLATE = "/events/%d";
+    public static final String EVENT_URI_TEMPLATE = "/events/%d";
     private StatsClient statsClient;
 
     public long getViewsCountForOneEvent(Event event) {
