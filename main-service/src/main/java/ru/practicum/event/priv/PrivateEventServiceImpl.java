@@ -14,7 +14,7 @@ import ru.practicum.category.common.Category;
 import ru.practicum.category.pub.PublicCategoryService;
 import ru.practicum.event.common.EventMapper;
 import ru.practicum.event.common.EventRepository;
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.dto.EventFullDto;
 import ru.practicum.event.common.dto.EventShort;
 import ru.practicum.event.common.dto.EventShortDto;
@@ -165,8 +165,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             log.info("Обработка изменения статуса события c ID: {} действием: {}", eventId,
                     updateEventUserRequest.getStateAction());
             switch (updateEventUserRequest.getStateAction()) {
-                case SEND_TO_REVIEW -> event.setState(State.PENDING);
-                case CANCEL_REVIEW -> event.setState(State.CANCELED);
+                case SEND_TO_REVIEW -> event.setState(EventState.PENDING);
+                case CANCEL_REVIEW -> event.setState(EventState.CANCELED);
             }
         }
 
@@ -250,7 +250,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     }
 
     private static void validateEventState(Event event) {
-        if (event.getState() == State.PUBLISHED) {
+        if (event.getState() == EventState.PUBLISHED) {
             log.warn("Валидация изменения статуса провалена: событие ID: {} уже имеет статус PUBLISHED", event.getId());
             throw new ConditionsNotMetException("Only pending or canceled events can be changed");
         }

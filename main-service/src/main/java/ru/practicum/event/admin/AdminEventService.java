@@ -1,6 +1,6 @@
 package ru.practicum.event.admin;
 
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.dto.EventFullDto;
 import ru.practicum.event.common.model.Event;
 
@@ -14,7 +14,7 @@ public interface AdminEventService {
 
     List<EventFullDto> getEvents(
             List<Long> users,
-            List<State> states,
+            List<EventState> states,
             List<Long> categories,
             LocalDateTime rangeStart,
             LocalDateTime rangeEnd,

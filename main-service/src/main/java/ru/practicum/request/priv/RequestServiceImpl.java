@@ -6,7 +6,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.model.Event;
 import ru.practicum.event.pub.PublicEventService;
 import ru.practicum.exception.ConditionsNotMetException;
@@ -203,7 +203,7 @@ public class RequestServiceImpl implements RequestService {
                     "their own event.");
         }
 
-        if (!(event.getState() == State.PUBLISHED)) {
+        if (!(event.getState() == EventState.PUBLISHED)) {
             log.warn("Валидация провалена: событие ID: {} не опубликовано (текущий статус: {})", eventId,
                     event.getState());
             throw new ConditionsNotMetException("You cannot participate in an unpublished event.");

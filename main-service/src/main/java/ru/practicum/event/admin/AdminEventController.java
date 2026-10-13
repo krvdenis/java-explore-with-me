@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.event.common.dto.EventFullDto;
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +39,7 @@ public class AdminEventController {
     @GetMapping
     public List<EventFullDto> getEvents(
             @RequestParam(required = false) List<Long> users,
-            @RequestParam(required = false) List<State> states,
+            @RequestParam(required = false) List<EventState> states,
             @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) LocalDateTime rangeStart,
             @RequestParam(required = false) LocalDateTime rangeEnd,

@@ -2,13 +2,13 @@ package ru.practicum.event.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
-public enum State {
+public enum EventState {
     PENDING,
     PUBLISHED,
     CANCELED;
 
     @JsonCreator
-    public static State fromString(String value) {
-        return State.valueOf(value.toUpperCase());
+    public static EventState fromString(String value) {
+        return EventState.valueOf(value.toUpperCase());
     }
 }

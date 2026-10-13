@@ -1,11 +1,13 @@
 package ru.practicum.event.pub;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum EventSort {
     EVENT_DATE,
     VIEWS;
 
-//    @JsonCreator
-//    public static State fromString(String value) {
-//        return State.valueOf(value.toUpperCase());
-//    } проверить не сломает ли
+    @JsonCreator
+    public static EventSort fromString(String value) {
+        return EventSort.valueOf(value.toUpperCase());
+    }
 }

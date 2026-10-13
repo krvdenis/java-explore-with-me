@@ -104,6 +104,7 @@ public class AdminCompilationServiceImpl implements AdminCompilationService {
 
         if (updateCompilationRequest.hasEvents()) {
             compilation.getEvents().clear();
+
             Set<Long> eventIds = updateCompilationRequest.getEvents();
             events = eventIds.isEmpty() ? new HashSet<>() : eventService.getEvents(eventIds);
 

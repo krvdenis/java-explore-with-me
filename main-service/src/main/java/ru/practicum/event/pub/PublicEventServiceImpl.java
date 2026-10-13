@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ViewStatsDto;
 import ru.practicum.event.common.EventMapper;
 import ru.practicum.event.common.EventRepository;
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.dto.EventFullDto;
 import ru.practicum.event.common.dto.EventShortDto;
 import ru.practicum.event.common.model.Event;
@@ -44,7 +44,7 @@ public class PublicEventServiceImpl implements PublicEventService {
     public EventFullDto getPublishedEventDtoById(long id) {
         log.info("Получен публичный запрос на получение события по ID: {}", id);
 
-        Event event = eventRepository.findByIdAndState(id, State.PUBLISHED)
+        Event event = eventRepository.findByIdAndState(id, EventState.PUBLISHED)
                 .orElseThrow(() -> {
                     log.warn("Опубликованное событие с ID: {} не найдено", id);
                     return new NotFoundException(String.format("Event with ID %s was not found", id));
@@ -186,7 +186,7 @@ public class PublicEventServiceImpl implements PublicEventService {
             builder.and((qEvent.confirmedRequests.lt(qEvent.participantLimit)).or(qEvent.participantLimit.eq(0L)));
         }
 
-        builder.and(qEvent.state.eq(State.PUBLISHED));
+        builder.and(qEvent.state.eq(EventState.PUBLISHED));
     }
 
 }

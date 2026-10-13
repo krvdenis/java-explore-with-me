@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.category.common.Category;
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.model.embeddable.Location;
 import ru.practicum.exception.ConditionsNotMetException;
 import ru.practicum.user.User;
@@ -80,20 +80,20 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
-    State state;
+    EventState state;
 
     @Column(nullable = false)
     String title;
 
     public void validateCanBePublished(LocalDateTime timeToPublish) {
-        if (this.state != State.PENDING) {
+        if (this.state != EventState.PENDING) {
             throw new ConditionsNotMetException("Cannot publish the event because it is not in PENDING state.");
         }
 
     }
 
     public void validateCanBeRejected() {
-        if (this.state == State.PUBLISHED) {
+        if (this.state == EventState.PUBLISHED) {
             throw new ConditionsNotMetException("Cannot reject the event because it is already PUBLISHED.");
         }
     }

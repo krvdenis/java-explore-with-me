@@ -26,7 +26,7 @@ public final class EventMapper {
                 .paid(newEventDto.isPaid())
                 .participantLimit(newEventDto.getParticipantLimit())
                 .requestModeration(newEventDto.getRequestModeration())
-                .state(State.PENDING)
+                .state(EventState.PENDING)
                 .title(newEventDto.getTitle())
                 .build();
     }

@@ -20,10 +20,10 @@ CREATE TABLE IF NOT EXISTS events (
     initiator_id BIGINT NOT NULL REFERENCES users(id),
     lat FLOAT NOT NULL,
     lon FLOAT NOT NULL,
-    paid BOOLEAN DEFAULT FALSE NOT NULL,
-    participant_limit BIGINT DEFAULT 0 NOT NULL,
+    paid BOOLEAN NOT NULL DEFAULT FALSE,
+    participant_limit BIGINT NOT NULL DEFAULT 0,
     published_on TIMESTAMP,
-    request_moderation BOOLEAN DEFAULT TRUE NOT NULL,
+    request_moderation BOOLEAN NOT NULL DEFAULT TRUE,
     state VARCHAR(15) NOT NULL,
     title VARCHAR(120) NOT NULL CHECK (LENGTH(title) >= 3)
 );

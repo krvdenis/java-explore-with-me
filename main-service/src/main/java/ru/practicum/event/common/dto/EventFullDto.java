@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.category.common.CategoryDto;
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.model.embeddable.Location;
 import ru.practicum.user.dto.UserShortDto;
 import ru.practicum.util.Constants;
@@ -43,7 +43,7 @@ public class EventFullDto {
     LocalDateTime publishedOn;
 
     Boolean requestModeration;
-    State state;
+    EventState state;
     String title;
     Long views;
 }

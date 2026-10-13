@@ -15,7 +15,7 @@ import ru.practicum.category.common.Category;
 import ru.practicum.category.pub.PublicCategoryService;
 import ru.practicum.event.common.EventMapper;
 import ru.practicum.event.common.EventRepository;
-import ru.practicum.event.common.State;
+import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.dto.EventFullDto;
 import ru.practicum.event.common.model.Event;
 import ru.practicum.event.common.model.QEvent;
@@ -58,7 +58,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                     return new NotFoundException(String.format("Event with ID %s was not found", id));
                 });
 
-        Long views = event.getState() == State.PUBLISHED ? eventStatsHelper.getViewsCountForOneEvent(event) : 0L;
+        Long views = event.getState() == EventState.PUBLISHED ? eventStatsHelper.getViewsCountForOneEvent(event) : 0L;
         log.debug("Текущее состояние события ID: {}: {}. Количество просмотров: {}", id, event.getState(), views);
 
         if (updateEventAdminRequest.hasCategory()) {
@@ -77,12 +77,12 @@ public class AdminEventServiceImpl implements AdminEventService {
             log.debug("Обработка административного действия со статусом: {}", updateEventAdminRequest.getStateAction());
             switch (updateEventAdminRequest.getStateAction()) {
                 case PUBLISH_EVENT -> {
-                    event.setState(State.PUBLISHED);
+                    event.setState(EventState.PUBLISHED);
                     event.setPublishedOn(timeToPublish);
                     log.info("Событие ID: {} успешно опубликовано в {}", id, timeToPublish);
                 }
                 case REJECT_EVENT -> {
-                    event.setState(State.CANCELED);
+                    event.setState(EventState.CANCELED);
                     log.info("Событие ID: {} отклонено администратором", id);
                 }
             }
@@ -98,7 +98,7 @@ public class AdminEventServiceImpl implements AdminEventService {
     @Override
     public List<EventFullDto> getEvents(
             List<Long> users,
-            List<State> states,
+            List<EventState> states,
             List<Long> categories,
             LocalDateTime rangeStart,
             LocalDateTime rangeEnd,
@@ -114,7 +114,7 @@ public class AdminEventServiceImpl implements AdminEventService {
         List<Long> filteredUsers = (users == null) ? List.of() : users.stream()
                 .filter(Objects::nonNull)
                 .toList();
-        List<State> filteredStates = (states == null) ? List.of() : states.stream()
+        List<EventState> filteredStates = (states == null) ? List.of() : states.stream()
                 .filter(Objects::nonNull)
                 .toList();
         List<Long> filteredCategories = (categories == null) ? List.of() : categories.stream()
@@ -191,7 +191,7 @@ public class AdminEventServiceImpl implements AdminEventService {
             List<Long> filteredUsers,
             BooleanBuilder builder,
             QEvent qEvent,
-            List<State> filteredStates,
+            List<EventState> filteredStates,
             List<Long> filteredCategories) {
         if (!filteredUsers.isEmpty()) {
             builder.and(qEvent.initiator.id.in(users));
