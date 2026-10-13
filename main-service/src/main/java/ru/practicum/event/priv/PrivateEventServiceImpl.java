@@ -4,33 +4,32 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ViewStatsDto;
+import ru.practicum.category.common.Category;
 import ru.practicum.category.pub.PublicCategoryService;
-import ru.practicum.category.common.model.Category;
-import ru.practicum.event.common.dto.EventShort;
-import ru.practicum.event.common.enums.State;
-import ru.practicum.event.common.repository.EventRepository;
+import ru.practicum.event.common.EventMapper;
+import ru.practicum.event.common.EventRepository;
+import ru.practicum.event.common.State;
 import ru.practicum.event.common.dto.EventFullDto;
+import ru.practicum.event.common.dto.EventShort;
 import ru.practicum.event.common.dto.EventShortDto;
-import ru.practicum.event.priv.dto.NewEventDto;
-import ru.practicum.event.priv.dto.UpdateEventUserRequest;
-import ru.practicum.event.common.mapper.EventMapper;
 import ru.practicum.event.common.model.Event;
 import ru.practicum.event.common.util.EventStatsHelper;
+import ru.practicum.event.priv.dto.NewEventDto;
+import ru.practicum.event.priv.dto.UpdateEventUserRequest;
 import ru.practicum.exception.ConditionsNotMetException;
 import ru.practicum.exception.NotFoundException;
-import ru.practicum.request.RequestService;
-import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.request.dto.EventRequestStatusUpdateResult;
-import ru.practicum.request.dto.ParticipationRequestDto;
+import ru.practicum.request.priv.RequestService;
+import ru.practicum.request.priv.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.request.priv.dto.EventRequestStatusUpdateResult;
+import ru.practicum.request.priv.dto.ParticipationRequestDto;
+import ru.practicum.user.User;
 import ru.practicum.user.UserService;
-import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,12 +37,16 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static ru.practicum.util.Constants.START_OF_TIME;
+
 @Service
 @Transactional(readOnly = true)
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PrivateEventServiceImpl implements PrivateEventService {
+    private static final int MIN_HOURS_BEFORE_EVENT = 2;
+
     EventRepository eventRepository;
     UserService userService;
     PublicCategoryService categoryService;
@@ -52,96 +55,95 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
     @Override
     @Transactional
-    @SuppressWarnings("ConstantConditions")
     public EventFullDto createEvent(long userId, NewEventDto newEventDto) {
-        log.info("Получен запрос на создание события от пользователя ID: {}", userId);
+        log.info("Получен запрос на создание события от пользователя с ID: {}", userId);
+
         User user = userService.getUserById(userId);
         Category category = categoryService.getCategoryById(newEventDto.getCategory());
 
         validateEventDate(newEventDto.getEventDate());
 
-        log.info("Инфо о юзере {}",user);
-        Event event = EventMapper.mapToEvent(newEventDto, user, category);
+        Event event = EventMapper.mapToEvent(newEventDto);
+        event.setInitiator(user);
+        event.setCategory(category);
+
         if (newEventDto.getRequestModeration() == null) {
             event.setRequestModeration(true);
         } else {
             event.setRequestModeration(newEventDto.getRequestModeration());
         }
-        log.info("Инфо о инициаторе события {}",event.getInitiator().getId());
+
         EventFullDto eventFullDto = EventMapper.mapToFullDto(eventRepository.save(event));
         eventFullDto.setViews(0L);
 
-        log.debug("Сгенерирован ID {} для нового события", eventFullDto.getId());
+        log.info("Сгенерирован ID {} для нового события", eventFullDto.getId());
         return eventFullDto;
     }
 
     @Override
     public EventFullDto getOwnedEventDtoById(long userId, long eventId) {
-//        userService.checkUserExists(userId);
-        log.info("Получен запрос пользователя ID: {} на просмотр полной информации о своем событии ID: {}", userId, eventId);
+        log.info("Получен запрос от пользователя с ID: {} на просмотр полной информации о своем событии ID: {}",
+                userId, eventId);
 
         Event event = getOwnedEventById(userId, eventId);
         EventFullDto eventFullDto = EventMapper.mapToFullDto(event);
-        eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(eventId));
+        eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(event));
 
-        log.info("Успешно получена полная информация о событии ID: {} для пользователя ID: {}", eventId, userId);
+        log.info("Получена полная информация о событии с ID: {} для пользователя ID: {}", eventId, userId);
         return eventFullDto;
     }
 
 
     @Override
     public List<EventShortDto> getOwnedEvents(long userId, int from, int size) {
-//        userService.checkUserExists(userId);
-        log.info("Получен запрос на просмотр списка событий пользователя ID: {} (от: {}, размер: {})", userId, from, size);
+        log.info("Получен запрос на просмотр списка событий пользователя c ID: {} (от: {}, размер: {})", userId, from,
+                size);
 
-        int page = from / size;
-        Sort sort = Sort.by("eventDate");
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<EventShort> eventPage = eventRepository.findAllByInitiatorId(userId, pageable);
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("eventDate"));
 
-        log.debug("Из репозитория получено страниц: {}, всего элементов: {}", eventPage.getTotalPages(), eventPage.getTotalElements());
-
-        Map<Long, EventShort> eventShortMap = eventPage.getContent().stream()
+        Map<Long, EventShort> eventMap = eventRepository.findAllByInitiatorId(userId, pageable).getContent().stream()
                 .collect(Collectors.toMap(EventShort::getId, Function.identity()));
 
-        List<String> uris = eventShortMap.keySet().stream()
+        if (eventMap.isEmpty()) {
+            log.info("Список найденных событий пуст");
+            return List.of();
+        }
+
+        List<String> uris = eventMap.keySet().stream()
                 .map(eventId -> String.format(EventStatsHelper.EVENT_URI_TEMPLATE, eventId))
                 .toList();
-        List<ViewStatsDto> viewStatsDtos = eventStatsHelper.getViewStatsDtos(
-                LocalDateTime.now().minusYears(5),
-                LocalDateTime.now().plusYears(5),
-                uris,
-                true
-        );
 
-        Map<Long, ViewStatsDto> eventIdToViewStats = viewStatsDtos.stream()
-                .collect(Collectors.toMap(
-                        viewStatsDto -> {
-                            String[] uri = viewStatsDto.getUri().split("/");
-                            Long eventId = Long.valueOf(uri[uri.length - 1]);
-                            return eventId;
+        log.info("Запрос статистики просмотров для {} URI", uris.size());
+        Map<Long, ViewStatsDto> eventIdToViewStats = eventStatsHelper.getViewStatsDtos(
+                        START_OF_TIME,
+                        LocalDateTime.now(),
+                        uris,
+                        true
+                ).stream()
+                .collect(Collectors.toMap(viewStatsDto -> {
+                            String[] uriParts = viewStatsDto.getUri().split("/");
+                            return Long.valueOf(uriParts[uriParts.length - 1]);
                         },
                         Function.identity()));
 
-        List<EventShortDto> eventShortDtos = eventShortMap.values().stream()
+        List<EventShortDto> eventShortDtos = eventMap.values().stream()
                 .map(event -> {
                     EventShortDto eventShortDto = EventMapper.mapToShortDto(event);
-                    ViewStatsDto viewStatsDto = eventIdToViewStats.get(event.getId());
-                    Long views = viewStatsDto == null ? 0L : viewStatsDto.getHits();
+                    ViewStatsDto viewStats = eventIdToViewStats.get(event.getId());
+                    Long views = viewStats == null ? 0L : viewStats.getHits();
                     eventShortDto.setViews(views);
                     return eventShortDto;
                 })
                 .toList();
 
-        log.info("Успешно сформирован краткий список из {} событий пользователя ID: {}", eventShortDtos.size(), userId);
+        log.info("Сформирован краткий список из {} событий пользователя ID: {}", eventShortDtos.size(), userId);
         return eventShortDtos;
     }
 
     @Override
     @Transactional
     public EventFullDto updateEvent(long userId, long eventId, UpdateEventUserRequest updateEventUserRequest) {
-//        userService.checkUserExists(userId);
-        log.info("Получен запрос на обновление события ID: {} пользователем ID: {}", eventId, userId);
+        log.info("Получен запрос на обновление события c ID: {} пользователем ID: {}", eventId, userId);
 
         Event event = getOwnedEventById(userId, eventId);
 
@@ -154,13 +156,14 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         if (updateEventUserRequest.hasCategory()) {
             Category category = categoryService.getCategoryById(updateEventUserRequest.getCategory());
             event.setCategory(category);
-            log.debug("В событии ID: {} обновлена категория", eventId);
+            log.info("В событии ID: {} обновлена категория", eventId);
         }
 
         EventMapper.updateEventFields(event, updateEventUserRequest);
 
         if (updateEventUserRequest.hasStateAction()) {
-            log.debug("Обработка изменения статуса события ID: {} на действие: {}", eventId, updateEventUserRequest.getStateAction());
+            log.info("Обработка изменения статуса события c ID: {} действием: {}", eventId,
+                    updateEventUserRequest.getStateAction());
             switch (updateEventUserRequest.getStateAction()) {
                 case SEND_TO_REVIEW -> event.setState(State.PENDING);
                 case CANCEL_REVIEW -> event.setState(State.CANCELED);
@@ -168,23 +171,17 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         }
 
         EventFullDto eventFullDto = EventMapper.mapToFullDto(event);
-        eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(eventId));
+        eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(event));
 
         log.info("Событие ID: {} пользователя ID: {} успешно обновлено", eventId, userId);
         return eventFullDto;
     }
 
-    private static void validateEventState(Event event) {
-        if (event.getState() == State.PUBLISHED) {
-            log.warn("Валидация изменения статуса провалена: событие ID: {} уже имеет статус PUBLISHED", event.getId());
-            throw new ConditionsNotMetException("Only pending or canceled events can be changed");
-        }
-    }
 
     @Override
     public List<ParticipationRequestDto> getEventRequestsForInitiator(long userId, long eventId) {
-//        userService.checkUserExists(userId);
-        log.info("Получен запрос инициатора ID: {} на выгрузку заявок к событию ID: {}", userId, eventId);
+        log.info("Получен запрос от инициатора события с ID: {} на выгрузку заявок к событию ID: {}", userId, eventId);
+
         if (!eventRepository.existsByIdAndInitiatorId(eventId, userId)) {
             log.warn("Событие ID: {} с инициатором ID: {} не существует", eventId, userId);
             throw new NotFoundException(String.format("Event with ID %s was not found", eventId));
@@ -201,58 +198,62 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             long userId,
             long eventId,
             EventRequestStatusUpdateRequest statusUpdateRequest) {
-        log.info("Получен запрос от инициатора ID: {} на изменение статуса заявок к событию ID: {}", userId, eventId);
+        log.info("Получен запрос от инициатора события с ID: {} на изменение статуса заявок к событию ID: {} на {}",
+                userId, eventId, statusUpdateRequest.getStatus());
 
         Event event = getOwnedEventById(userId, eventId);
+
         if (event.isParticipantLimitReached()) {
             log.warn("Изменение статуса заявок прервано: для события ID: {} достигнут лимит участников", eventId);
             throw new ConditionsNotMetException("The participant limit for this event has been reached.");
         }
 
         long availableSlots = event.getParticipantLimit() - event.getConfirmedRequests();
-        log.debug("Событие ID: {}, доступно свободных слотов для подтверждения: {}", eventId, availableSlots);
+        log.info("Событие ID: {}, доступно свободных слотов для подтверждения: {}", eventId, availableSlots);
 
-        EventRequestStatusUpdateResult eventRequestStatusUpdateResult = requestService.changeRequestsStatusByOwnerEvent(
+        EventRequestStatusUpdateResult result = requestService.changeRequestsStatusByInitiatorEvent(
                 statusUpdateRequest,
                 availableSlots
         );
 
-        List<ParticipationRequestDto> confirmedRequests = eventRequestStatusUpdateResult.getConfirmedRequests();
-
+        List<ParticipationRequestDto> confirmedRequests = result.getConfirmedRequests();
         int countConfirmedRequest = 0;
 
         while (countConfirmedRequest < confirmedRequests.size()) {
             event.incrementConfirmedRequests();
             countConfirmedRequest++;
         }
+
         log.info("Количество подтвержденных заявок {}", event.getConfirmedRequests());
-        log.info("Успешно обновлены статусы заявок для события ID: {}. Число подтвержденных счетчиков увеличено на {}",
+        log.info("Обновлены статусы заявок для события ID: {}. Число подтвержденных счетчиков увеличено на {}",
                 eventId, countConfirmedRequest);
-        return eventRequestStatusUpdateResult;
+        return result;
     }
 
-    private Event getOwnedEventById(long userId, long eventId) {
-        log.debug("Поиск события по ID: {} и инициатору ID: {}", eventId, userId);
-        return eventRepository.findByIdAndInitiatorId(eventId, userId)
+    private Event getOwnedEventById(long initiator, long eventId) {
+        log.info("Поиск события по ID: {} и инициатору с ID: {}", eventId, initiator);
+        return eventRepository.findByIdAndInitiatorId(eventId, initiator)
                 .orElseThrow(() -> {
-                    log.warn("Событие ID: {} у инициатора ID: {} не найдено", eventId, userId);
+                    log.warn("Событие ID: {} у инициатора ID: {} не найдено", eventId, initiator);
                     return new NotFoundException(String.format("Event with ID %s was not found", eventId));
                 });
     }
 
     private static void validateEventDate(LocalDateTime eventDate) {
-        if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
-            log.warn("Валидация даты провалена: дата события {} должна быть минимум на 2 часа позже текущего момента", eventDate);
-            throw new ConditionsNotMetException(String.format("Field: eventDate. Error: must be at least 2 hours in" +
-                    " the future from the current moment. Value: %s", eventDate));
+        if (eventDate.isBefore(LocalDateTime.now().plusHours(MIN_HOURS_BEFORE_EVENT))) {
+            log.warn("Валидация даты провалена: дата события {} должна быть минимум на {} часа позже текущего момента",
+                    eventDate, MIN_HOURS_BEFORE_EVENT);
+
+            throw new ConditionsNotMetException(String.format("Field: eventDate. Error: must be at least %d hours in" +
+                    " the future from the current moment. Value: %s", MIN_HOURS_BEFORE_EVENT, eventDate));
         }
     }
 
-    //    @Override
-//    public void checkEventExists(long eventId) {
-//        if (!eventRepository.existsById(eventId)) {
-//            throw new NotFoundException(String.format("Event with ID %s not found", eventId));
-//        }
-//    }
+    private static void validateEventState(Event event) {
+        if (event.getState() == State.PUBLISHED) {
+            log.warn("Валидация изменения статуса провалена: событие ID: {} уже имеет статус PUBLISHED", event.getId());
+            throw new ConditionsNotMetException("Only pending or canceled events can be changed");
+        }
+    }
 
 }

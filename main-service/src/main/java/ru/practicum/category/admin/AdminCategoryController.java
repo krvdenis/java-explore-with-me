@@ -12,27 +12,29 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.category.admin.dto.NewCategoryDto;
-import ru.practicum.category.common.dto.CategoryDto;
+import ru.practicum.category.common.CategoryDto;
+
+import static ru.practicum.util.Constants.PATH_ADMIN;
+import static ru.practicum.util.Constants.PATH_CATEGORIES;
+import static ru.practicum.util.Constants.PATH_CATEGORY_ID;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/admin/categories")
+@RequestMapping(PATH_ADMIN + PATH_CATEGORIES)
 public class AdminCategoryController {
-    public static final String PATH_CATEGORY_ID = "/{catId}";
     private final AdminCategoryService categoryService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryDto createCategory(@Valid @RequestBody NewCategoryDto newCategoryDto) {
-        log.info("Запрос на добавление категории {}", newCategoryDto);
+        log.info("Запрос на добавление новой категории {}", newCategoryDto);
         return categoryService.createCategory(newCategoryDto);
     }
 
     @PatchMapping(PATH_CATEGORY_ID)
     public CategoryDto updateCategory(@PathVariable long catId, @Valid @RequestBody NewCategoryDto updateCategoryDto) {
-        log.info("Запрос на изменение характеристик категории  {}", updateCategoryDto);
+        log.info("Запрос на изменение характеристик категории с ID {} - {}", catId, updateCategoryDto);
         return categoryService.updateCategory(catId, updateCategoryDto);
     }
 

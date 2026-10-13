@@ -12,15 +12,16 @@ import ru.practicum.EndpointHitDto;
 import ru.practicum.StatsClient;
 import ru.practicum.event.common.dto.EventFullDto;
 import ru.practicum.event.common.dto.EventShortDto;
-import ru.practicum.event.pub.enums.EventSort;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static ru.practicum.util.Constants.PATH_EVENTS;
+
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/events")
+@RequestMapping(PATH_EVENTS)
 public class PublicEventController {
     public static final String APP_NAME = "ewm-main-service";
     private final PublicEventService publicEventService;
@@ -29,7 +30,7 @@ public class PublicEventController {
 
     @GetMapping("/{id}")
     public EventFullDto getPublishedEventById(@PathVariable long id, HttpServletRequest request) {
-        log.info("Запрос на получение информации о событии с ID {}", id);
+        log.info("Запрос на получение информации об опубликованном событии с ID {}", id);
         registerHit(request);
         return publicEventService.getPublishedEventDtoById(id);
     }
@@ -62,7 +63,8 @@ public class PublicEventController {
     }
 
     private void registerHit(HttpServletRequest request) {
-        log.info("Запрос к эндпоинту: path={}, client ip={}", request.getRequestURI(), request.getRemoteAddr());
+        log.info("Регистрация запроса к эндпоинту: path={}, client ip={}", request.getRequestURI(),
+                request.getRemoteAddr());
 
         statsClient.registerHit(
                 EndpointHitDto.builder()

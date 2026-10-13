@@ -3,16 +3,13 @@ package ru.practicum.user.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
-import lombok.experimental.FieldDefaults;
 
 @Value
 @ToString
 @NoArgsConstructor(force = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class NewUserRequest {
     @NotBlank
     @Email

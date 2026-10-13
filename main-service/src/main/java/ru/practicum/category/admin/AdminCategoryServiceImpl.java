@@ -6,11 +6,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.category.common.repository.CategoryRepository;
-import ru.practicum.category.admin.dto.NewCategoryDto;
-import ru.practicum.category.common.dto.CategoryDto;
-import ru.practicum.category.common.mapper.CategoryMapper;
-import ru.practicum.category.common.model.Category;
+import ru.practicum.category.common.Category;
+import ru.practicum.category.common.CategoryDto;
+import ru.practicum.category.common.CategoryMapper;
+import ru.practicum.category.common.CategoryRepository;
 import ru.practicum.event.admin.AdminEventService;
 import ru.practicum.exception.ConditionsNotMetException;
 import ru.practicum.exception.NotFoundException;
@@ -25,22 +24,29 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     AdminEventService adminEventService;
 
     @Override
-    public CategoryDto createCategory(NewCategoryDto dto) {
+    public CategoryDto createCategory(NewCategoryDto newCategoryDto) {
         log.info("Создание записи с данными новой категории в БД");
-        Category category = CategoryMapper.mapToCategory(dto);
+
+        Category category = CategoryMapper.mapToCategory(newCategoryDto);
         CategoryDto categoryDto = CategoryMapper.mapToDto(categoryRepository.save(category));
-        log.debug("Сгенерирован ID {} для новой категории", categoryDto.getId());
+        log.info("Сгенерирован ID {} для новой категории", categoryDto.getId());
         return categoryDto;
     }
 
     @Override
     public CategoryDto updateCategory(long id, NewCategoryDto updateCategoryDto) {
         log.info("Изменение характеристик категории с ID {}: {}", id, updateCategoryDto);
+
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Категория с ID = %d не найдена.", id)));
+                .orElseThrow(() -> {
+                    log.warn("Ошибка обновления: категория с ID {} не найдена", id);
+                    return new NotFoundException(String.format("Category with ID %d was not found", id));
+                });
+
         CategoryMapper.updateCategoryFields(category, updateCategoryDto);
+
         CategoryDto updatedCategoryDto = CategoryMapper.mapToDto(category);
-        log.debug("Изменены характеристики категории с ID {}: {}", id, updatedCategoryDto);
+        log.info("Изменены характеристики категории с ID {}: {}", id, updatedCategoryDto);
         return updatedCategoryDto;
     }
 
@@ -49,12 +55,16 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
         log.info("Удаляется категория с ID {}", id);
 
         if (adminEventService.checkEventExistsByCategoryId(id)) {
+            log.warn("Ошибка удаления: категория с ID {} содержит связанные события и не может быть удалена", id);
             throw new ConditionsNotMetException("The category is not empty");
         }
 
-        CategoryDto categoryDto = CategoryMapper.mapToDto(categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Категория с ID = %d не найдена.", id))));
+        if (!categoryRepository.existsById(id)) {
+            log.warn("Ошибка удаления: категория с ID {} не найдена", id);
+            throw new NotFoundException(String.format("Category with ID %d was not found", id));
+        }
+
         categoryRepository.deleteById(id);
-        log.debug("Запрос на удаление категории с ID {} обработан", id);
+        log.info("Запрос на удаление категории с ID {} обработан", id);
     }
 }

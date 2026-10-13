@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.event.common.model.embeddable.Location;
 import ru.practicum.util.Constants;

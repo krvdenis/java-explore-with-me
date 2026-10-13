@@ -18,12 +18,15 @@ import ru.practicum.user.dto.UserDto;
 
 import java.util.List;
 
+import static ru.practicum.util.Constants.PATH_ADMIN;
+import static ru.practicum.util.Constants.PATH_USERS;
+import static ru.practicum.util.Constants.PATH_USER_ID;
+
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/admin/users")
+@RequestMapping(PATH_ADMIN + PATH_USERS)
 public class AdminUserController {
-    public static final String PATH_USER_ID = "/{userId}";
     private final UserService userService;
 
     @PostMapping
@@ -33,18 +36,19 @@ public class AdminUserController {
         return userService.createUser(newUserRequest);
     }
 
+    @GetMapping
+    public List<UserDto> getUsers(
+            @RequestParam(required = false) List<Long> ids,
+            @RequestParam(defaultValue = "0") int from,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Запрос на получение списка пользователей по их ID, from = {}, size = {}", from, size);
+        return userService.getUsers(ids, from, size);
+    }
+
     @DeleteMapping(PATH_USER_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUserById(@PathVariable long userId) {
         log.info("Запрос на удаление пользователя с ID = {}", userId);
         userService.deleteUserById(userId);
-    }
-
-    @GetMapping
-    public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
-                                  @RequestParam(defaultValue = "0") int from,
-                                  @RequestParam(defaultValue = "10") int size) {
-        log.info("Запрос по получения списка пользователей id = {}, from = {}, size = {}", ids, from, size);
-        return userService.getUsers(ids, from, size);
     }
 }

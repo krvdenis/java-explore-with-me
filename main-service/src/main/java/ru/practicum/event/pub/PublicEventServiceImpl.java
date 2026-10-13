@@ -5,25 +5,23 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ViewStatsDto;
+import ru.practicum.event.common.EventMapper;
+import ru.practicum.event.common.EventRepository;
+import ru.practicum.event.common.State;
 import ru.practicum.event.common.dto.EventFullDto;
-import ru.practicum.event.common.dto.EventShort;
 import ru.practicum.event.common.dto.EventShortDto;
-import ru.practicum.event.common.enums.State;
-import ru.practicum.event.common.mapper.EventMapper;
 import ru.practicum.event.common.model.Event;
 import ru.practicum.event.common.model.QEvent;
-import ru.practicum.event.common.repository.EventRepository;
 import ru.practicum.event.common.util.EventStatsHelper;
-import ru.practicum.event.pub.enums.EventSort;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -31,56 +29,44 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static ru.practicum.util.Constants.START_OF_TIME;
+
 @Service
 @Transactional(readOnly = true)
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PublicEventServiceImpl implements PublicEventService {
-    public static final State PUBLISHED = State.PUBLISHED;
     EventRepository eventRepository;
     EventStatsHelper eventStatsHelper;
 
     @Override
-    public EventFullDto getPublishedEventDtoById(long eventId) {
-        log.info("Получен публичный запрос на получение DTO события по ID: {}", eventId);
+    public EventFullDto getPublishedEventDtoById(long id) {
+        log.info("Получен публичный запрос на получение события по ID: {}", id);
 
-        Event event = getPublishedEventById(eventId);
+        Event event = eventRepository.findByIdAndState(id, State.PUBLISHED)
+                .orElseThrow(() -> {
+                    log.warn("Опубликованное событие с ID: {} не найдено", id);
+                    return new NotFoundException(String.format("Event with ID %s was not found", id));
+                });
         EventFullDto eventFullDto = EventMapper.mapToFullDto(event);
-        eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(eventId));
+        eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(event));
 
-        log.info("Успешно сформировано DTO для опубликованного события ID: {}", eventId);
+        log.info("Получена полная информация о событии с ID {}", event.getId());
+
         return eventFullDto;
     }
 
     @Override
-    public Event getPublishedEventById(long eventId) {
-        log.debug("Поиск опубликованного события по ID: {}", eventId);
-        return eventRepository.findByIdAndState(eventId, PUBLISHED)
+    public Event getEventById(long id) {
+        Event event = eventRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("Опубликованное событие с ID: {} не найдено", eventId);
-                    return new NotFoundException(String.format("Event with ID %s was not found", eventId));
+                    log.warn("Событие с ID: {} не найдено", id);
+                    return new NotFoundException(String.format("Event with ID %s was not found", id));
                 });
+        log.info("Получена информация о событии с ID {}", event);
+        return event;
     }
-
-    @Override
-    public Event getEventEntityById(long eventId) {
-        log.debug("Поиск сущности события по ID: {}", eventId);
-        return eventRepository.findById(eventId)
-                .orElseThrow(() -> {
-                    log.warn("Событие с ID: {} не найдено", eventId);
-                    return new NotFoundException(String.format("Event with ID %s was not found", eventId));
-                });
-    }
-
-
-
-    /*это публичный эндпоинт, соответственно в выдаче должны быть только опубликованные события
-    - текстовый поиск (по аннотации и подробному описанию) должен быть без учета регистра букв
-    - если в запросе не указан диапазон дат [rangeStart-rangeEnd], то нужно выгружать события, которые произойдут позже
-     текущей даты и времени
-    - информация о каждом событии должна включать в себя количество просмотров и количество уже одобренных заявок на
-    участие*/
 
     @Override
     public List<EventShortDto> getPublishedEvents(
@@ -94,7 +80,8 @@ public class PublicEventServiceImpl implements PublicEventService {
             int from,
             int size) {
 
-        log.info("Получен публичный поисковый запрос событий. Параметры: text='{}', categories={}, paid={}, rangeStart={}, rangeEnd={}, onlyAvailable={}, sort={}, from={}, size={}",
+        log.info("Получен публичный поисковый запрос событий. Параметры: text='{}', categories={}, paid={}," +
+                        " rangeStart={}, rangeEnd={}, onlyAvailable={}, sort={}, from={}, size={}",
                 text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
 
         if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
@@ -108,49 +95,45 @@ public class PublicEventServiceImpl implements PublicEventService {
 
         QEvent qEvent = QEvent.event;
         BooleanBuilder builder = new BooleanBuilder();
-
         buildQuery(text, paid, rangeStart, rangeEnd, onlyAvailable, builder, qEvent, filteredCategories, now);
+        log.info("Сформирован QueryDSL builder для поиска");
 
-        Pageable pageable = pageable = PageRequest.of(from / size, size);
-        log.debug("Сформирован QueryDSL builder для поиска");
+        List<Event> allEvents = new ArrayList<>(eventRepository.findAll(builder, Pageable.unpaged()).getContent());
 
-        Map<Long, Event> eventMap = eventRepository.findAll(builder, pageable).getContent().stream()
-                .collect(Collectors.toMap(Event::getId, Function.identity()));
-
-        if (eventMap.isEmpty()) {
+        if (allEvents.isEmpty()) {
             log.info("Список найденных событий пуст");
             return List.of();
         }
 
-        List<String> uris = eventMap.keySet().stream()
-                .map(evenId -> String.format(EventStatsHelper.EVENT_URI_TEMPLATE, evenId))
+        List<String> uris = allEvents.stream()
+                .map(event -> String.format(EventStatsHelper.EVENT_URI_TEMPLATE, event.getId()))
                 .toList();
 
-        log.debug("Запрос статистики просмотров для {} URI", uris.size());
+        log.info("Запрос статистики просмотров для {} URI", uris.size());
         Map<Long, ViewStatsDto> eventIdToViewStats = eventStatsHelper.getViewStatsDtos(
-                        LocalDateTime.now().minusYears(5),
-                        LocalDateTime.now().plusYears(5),
+                        START_OF_TIME,
+                        LocalDateTime.now(),
                         uris,
                         true
                 ).stream()
                 .collect(Collectors.toMap(viewStatsDto -> {
                             String[] uriParts = viewStatsDto.getUri().split("/");
-                            Long eventid = Long.parseLong(uriParts[uriParts.length - 1]);
-                            return eventid;
+                            return Long.valueOf(uriParts[uriParts.length - 1]);
                         },
                         Function.identity()));
 
-        List<EventShortDto> eventShortDtos = eventMap.values().stream()
+        List<EventShortDto> eventShortDtos = allEvents.stream()
                 .map(event -> {
-                    EventShortDto dto = EventMapper.mapToShortDto(event);
+                    EventShortDto eventShortDto = EventMapper.mapToShortDto(event);
                     ViewStatsDto viewStats = eventIdToViewStats.get(event.getId());
                     Long views = viewStats == null ? 0L : viewStats.getHits();
-                    dto.setViews(views);
-                    return dto;
+                    eventShortDto.setViews(views);
+                    return eventShortDto;
                 })
                 .toList();
 
-        Comparator<EventShortDto> comparator = null;
+        Comparator<EventShortDto> comparator = Comparator.comparing(EventShortDto::getId);
+
         if (sort != null) {
             log.debug("Применение сортировки по типу: {}", sort);
             switch (sort) {
@@ -159,14 +142,12 @@ public class PublicEventServiceImpl implements PublicEventService {
             }
         }
 
-        if (comparator == null) {
-            log.info("Возврат несортированного списка из {} элементов", eventShortDtos.size());
-            return eventShortDtos;
-        }
+        log.info("Возврат отсортированного списка с применением пагинации: from={}, size={}", from, size);
 
-        log.info("Возврат отсортированного списка из {} элементов", eventShortDtos.size());
         return eventShortDtos.stream()
                 .sorted(comparator)
+                .skip(from)
+                .limit(size)
                 .toList();
     }
 
@@ -207,19 +188,5 @@ public class PublicEventServiceImpl implements PublicEventService {
 
         builder.and(qEvent.state.eq(State.PUBLISHED));
     }
-
-
-//    @Override
-//    public void checkEventExists(long eventId) {
-//        if (!eventRepository.existsById(eventId)) {
-//            throw new NotFoundException(String.format("Event with ID %s not found", eventId));
-//        }
-//    }
-
-//    private void checkInitiator(long userId, long initiatorId) {
-//        if (userId != initiatorId) {
-//            throw new ConditionsNotMetException("Access denied: Only the creator can manage this resource.");
-//        }
-//    } ЕСЛИ НЕ ПОТРЕБУЕТСЯ УДАЛИТЬ
 
 }

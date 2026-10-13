@@ -20,11 +20,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.category.common.model.Category;
-import ru.practicum.event.common.enums.State;
+import ru.practicum.category.common.Category;
+import ru.practicum.event.common.State;
 import ru.practicum.event.common.model.embeddable.Location;
 import ru.practicum.exception.ConditionsNotMetException;
-import ru.practicum.user.model.User;
+import ru.practicum.user.User;
 
 import java.time.LocalDateTime;
 
@@ -85,9 +85,6 @@ public class Event {
     @Column(nullable = false)
     String title;
 
-//    @Column(nullable = false)
-//    Long views;
-
     public void validateCanBePublished(LocalDateTime timeToPublish) {
         if (this.state != State.PENDING) {
             throw new ConditionsNotMetException("Cannot publish the event because it is not in PENDING state.");
@@ -104,12 +101,6 @@ public class Event {
     public boolean isParticipantLimitReached() {
         return this.participantLimit > 0
                 && this.confirmedRequests >= this.participantLimit;
-    }
-
-    public void decrementConfirmedRequests() {
-        if (this.confirmedRequests > 0) {
-            this.confirmedRequests--;
-        }
     }
 
     public void incrementConfirmedRequests() {

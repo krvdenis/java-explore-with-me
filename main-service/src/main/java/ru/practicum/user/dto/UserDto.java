@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserDto {
-    String email;
     Long id;
+    String email;
     String name;
 }

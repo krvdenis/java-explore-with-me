@@ -1,10 +1,9 @@
 package ru.practicum.category.admin;
 
-import ru.practicum.category.admin.dto.NewCategoryDto;
-import ru.practicum.category.common.dto.CategoryDto;
+import ru.practicum.category.common.CategoryDto;
 
 public interface AdminCategoryService {
-    CategoryDto createCategory(NewCategoryDto dto);
+    CategoryDto createCategory(NewCategoryDto newCategoryDto);
 
     CategoryDto updateCategory(long id, NewCategoryDto updateCategoryDto);
 

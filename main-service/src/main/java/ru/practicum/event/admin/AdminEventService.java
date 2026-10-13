@@ -1,17 +1,16 @@
 package ru.practicum.event.admin;
 
-import ru.practicum.event.admin.dto.UpdateEventAdminRequest;
+import ru.practicum.event.common.State;
 import ru.practicum.event.common.dto.EventFullDto;
-import ru.practicum.event.common.enums.State;
+import ru.practicum.event.common.model.Event;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 public interface AdminEventService {
 
-    EventFullDto updateEvent(long eventId, UpdateEventAdminRequest updateEventAdminRequest);
-
-    boolean checkEventExistsByCategoryId(long categoryId);
+    EventFullDto updateEvent(long id, UpdateEventAdminRequest updateEventAdminRequest);
 
     List<EventFullDto> getEvents(
             List<Long> users,
@@ -20,5 +19,10 @@ public interface AdminEventService {
             LocalDateTime rangeStart,
             LocalDateTime rangeEnd,
             int from,
-            int size);
+            int size
+    );
+
+    boolean checkEventExistsByCategoryId(long categoryId);
+
+    Set<Event> getEvents(Set<Long> eventIds);
 }

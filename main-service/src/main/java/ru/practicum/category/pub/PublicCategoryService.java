@@ -1,7 +1,7 @@
 package ru.practicum.category.pub;
 
-import ru.practicum.category.common.dto.CategoryDto;
-import ru.practicum.category.common.model.Category;
+import ru.practicum.category.common.Category;
+import ru.practicum.category.common.CategoryDto;
 
 import java.util.List;
 

@@ -1,14 +1,14 @@
 package ru.practicum.event.common.dto;
 
-import ru.practicum.category.common.model.Category;
-import ru.practicum.user.model.User;
+import ru.practicum.category.common.CategoryShort;
+import ru.practicum.user.dto.UserShort;
 
 import java.time.LocalDateTime;
 
 public interface EventShort {
     String getAnnotation();
 
-    Category getCategory();
+    CategoryShort getCategory();
 
     Long getConfirmedRequests();
 
@@ -16,7 +16,7 @@ public interface EventShort {
 
     Long getId();
 
-    User getInitiator();
+    UserShort getInitiator();
 
     Boolean getPaid();
 

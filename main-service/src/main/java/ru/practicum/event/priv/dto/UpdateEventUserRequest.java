@@ -9,15 +9,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.event.priv.enums.PrivateStateAction;
+import ru.practicum.event.priv.PrivateStateAction;
 import ru.practicum.event.common.model.embeddable.Location;
 import ru.practicum.util.Constants;
 
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
 @ToString
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateEventUserRequest {
 
@@ -54,7 +54,7 @@ public class UpdateEventUserRequest {
     }
 
     public boolean hasCategory() {
-        return !(category == null);
+        return category != null;
     }
 
     public boolean hasDescription() {
@@ -62,27 +62,27 @@ public class UpdateEventUserRequest {
     }
 
     public boolean hasEventDate() {
-        return !(eventDate == null);
+        return eventDate != null;
     }
 
     public boolean hasLocation() {
-        return !(location == null);
+        return location != null;
     }
 
     public boolean hasPaid() {
-        return !(paid == null);
+        return paid != null;
     }
 
     public boolean hasParticipantLimit() {
-        return !(participantLimit == null);
+        return participantLimit != null;
     }
 
     public boolean hasStateAction() {
-        return !(stateAction == null);
+        return stateAction != null;
     }
 
     public boolean hasRequestModeration() {
-        return !(requestModeration == null);
+        return requestModeration != null;
     }
 
     public boolean hasTitle() {
