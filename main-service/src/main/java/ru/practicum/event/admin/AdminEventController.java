@@ -1,7 +1,9 @@
 package ru.practicum.event.admin;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,8 +26,9 @@ import static ru.practicum.util.Constants.PATH_EVENT_ID;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping(PATH_ADMIN + PATH_EVENTS)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AdminEventController {
-    private final AdminEventService adminEventService;
+    AdminEventService adminEventService;
 
     @PatchMapping(PATH_EVENT_ID)
     public EventFullDto updateEvent(

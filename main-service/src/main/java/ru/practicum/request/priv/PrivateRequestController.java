@@ -1,6 +1,8 @@
 package ru.practicum.request.priv;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,8 +27,9 @@ import static ru.practicum.util.Constants.PATH_USER_ID;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping(PATH_USERS + PATH_USER_ID + PATH_REQUESTS)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PrivateRequestController {
-    private final RequestService requestService;
+    RequestService requestService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

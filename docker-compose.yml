@@ -18,8 +18,8 @@ services:
     image: postgres:16.1
     ports:
       - "6541:5432"
-#    volumes:
-#      - ./data/stats-db:/var/lib/postgresql/data
+    volumes:
+      - ./data/stats-db:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=stats
       - POSTGRES_USER=stats
@@ -49,8 +49,8 @@ services:
     image: postgres:16.1
     ports:
       - "5432:5432"
-#    volumes:
-#      - ./data/ewm-db:/var/lib/postgresql/data
+    volumes:
+      - ./data/ewm-db:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=ewm
       - POSTGRES_USER=ewm

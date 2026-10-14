@@ -1,7 +1,9 @@
 package ru.practicum.event.pub;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,10 +24,11 @@ import static ru.practicum.util.Constants.PATH_EVENTS;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping(PATH_EVENTS)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PublicEventController {
     public static final String APP_NAME = "ewm-main-service";
-    private final PublicEventService publicEventService;
-    private final StatsClient statsClient;
+    PublicEventService publicEventService;
+    StatsClient statsClient;
 
     @GetMapping("/{id}")
     public EventFullDto getPublishedEventById(@PathVariable long id, HttpServletRequest request) {

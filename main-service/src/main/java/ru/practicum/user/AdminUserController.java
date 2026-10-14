@@ -1,7 +1,9 @@
 package ru.practicum.user;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,8 +28,9 @@ import static ru.practicum.util.Constants.PATH_USER_ID;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping(PATH_ADMIN + PATH_USERS)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AdminUserController {
-    private final UserService userService;
+    UserService userService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

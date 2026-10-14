@@ -1,7 +1,9 @@
 package ru.practicum.event.priv;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +35,9 @@ import static ru.practicum.util.Constants.PATH_USER_ID;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping(PATH_USERS + PATH_USER_ID + PATH_EVENTS)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PrivateEventController {
-    private final PrivateEventService eventService;
+    PrivateEventService eventService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

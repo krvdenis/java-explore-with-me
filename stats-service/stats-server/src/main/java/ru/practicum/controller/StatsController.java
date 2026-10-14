@@ -1,7 +1,9 @@
 package ru.practicum.controller;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -21,9 +23,10 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class StatsController {
     public static final String DATA_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private final StatsService statsService;
+    StatsService statsService;
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)

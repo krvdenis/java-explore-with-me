@@ -1,7 +1,9 @@
 package ru.practicum.compilation.admin;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,8 +26,9 @@ import static ru.practicum.util.Constants.PATH_COMPILATION_ID;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping(PATH_ADMIN + PATH_COMPILATIONS)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AdminCompilationController {
-    private final AdminCompilationService compilationService;
+    AdminCompilationService compilationService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

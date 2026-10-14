@@ -15,7 +15,6 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateCompilationRequest {
     Set<Long> events;
-
     Boolean pinned;
 
     @Size(max = 50, message = "The title must not exceed 50 characters.")

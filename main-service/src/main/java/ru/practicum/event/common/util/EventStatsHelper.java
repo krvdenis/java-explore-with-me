@@ -1,5 +1,6 @@
 package ru.practicum.event.common.util;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +16,10 @@ import java.util.List;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-@FieldDefaults(makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EventStatsHelper {
     public static final String EVENT_URI_TEMPLATE = "/events/%d";
-    private StatsClient statsClient;
+    StatsClient statsClient;
 
     public long getViewsCountForOneEvent(Event event) {
         log.info("Запрос количества просмотров для события с ID: {}", event.getId());

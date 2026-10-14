@@ -222,7 +222,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             countConfirmedRequest++;
         }
 
-        log.info("Количество подтвержденных заявок {}", event.getConfirmedRequests());
+        log.info("Количество подтвержденных заявок события с ID {}: {}", event.getId(), event.getConfirmedRequests());
         log.info("Обновлены статусы заявок для события ID: {}. Число подтвержденных счетчиков увеличено на {}",
                 eventId, countConfirmedRequest);
         return result;

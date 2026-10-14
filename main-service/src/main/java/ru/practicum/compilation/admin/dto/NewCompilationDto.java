@@ -12,9 +12,7 @@ import java.util.Set;
 @ToString
 @NoArgsConstructor(force = true)
 public class NewCompilationDto {
-
     Set<Long> events;
-
     boolean pinned;
 
     @NotBlank
