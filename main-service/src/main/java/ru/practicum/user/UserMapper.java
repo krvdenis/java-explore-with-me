@@ -9,7 +9,6 @@ import ru.practicum.user.dto.UserShortDto;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class UserMapper {
-
     public static User mapToUser(NewUserRequest dto) {
         return User.builder()
                 .email(dto.getEmail())

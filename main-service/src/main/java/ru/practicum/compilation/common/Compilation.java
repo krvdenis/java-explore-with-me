@@ -34,7 +34,6 @@ public class Compilation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-
     @ManyToMany
     @JoinTable(
             name = "compilations_events",

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface AdminEventService {
-
     EventFullDto updateEvent(long id, UpdateEventAdminRequest updateEventAdminRequest);
 
     List<EventFullDto> getEvents(

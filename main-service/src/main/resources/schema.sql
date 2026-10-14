@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS compilations (
     title VARCHAR(50) NOT NULL
 );
 
-
 CREATE TABLE IF NOT EXISTS compilations_events (
     compilation_id BIGINT REFERENCES compilations(id) ON DELETE CASCADE,
     event_id BIGINT REFERENCES events(id) ON DELETE CASCADE,

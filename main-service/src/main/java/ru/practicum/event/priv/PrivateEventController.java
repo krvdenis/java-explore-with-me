@@ -34,7 +34,6 @@ import static ru.practicum.util.Constants.PATH_USER_ID;
 @RequiredArgsConstructor
 @RequestMapping(PATH_USERS + PATH_USER_ID + PATH_EVENTS)
 public class PrivateEventController {
-
     private final PrivateEventService eventService;
 
     @PostMapping
@@ -67,7 +66,6 @@ public class PrivateEventController {
         log.info("Запрос на обновление информации о своём событии с ID {}, {}", eventId, updateEventUserRequest);
         return eventService.updateEvent(userId, eventId, updateEventUserRequest);
     }
-
 
     @GetMapping(PATH_EVENT_ID + PATH_REQUESTS)
     public List<ParticipationRequestDto> getRequestsByEventId(@PathVariable long userId, @PathVariable long eventId) {

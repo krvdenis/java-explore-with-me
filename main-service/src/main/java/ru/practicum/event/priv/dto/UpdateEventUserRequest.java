@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateEventUserRequest {
-
     @Size(max = 2000, message = "The annotation must not exceed 2000 characters.")
     @Size(min = 20, message = "The annotation must be at least 20 characters long.")
     String annotation;
@@ -42,7 +41,6 @@ public class UpdateEventUserRequest {
     Long participantLimit;
 
     Boolean requestModeration;
-
     PrivateStateAction stateAction;
 
     @Size(max = 120, message = "The title must not exceed 120 characters.")

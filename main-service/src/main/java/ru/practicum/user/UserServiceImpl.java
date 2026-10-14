@@ -80,7 +80,6 @@ public class UserServiceImpl implements UserService {
         log.info("Пользователь с ID {} успешно удален", id);
     }
 
-
     @Override
     public void checkUserExists(long id) {
         log.info("Проверка существования пользователя с ID: {}", id);

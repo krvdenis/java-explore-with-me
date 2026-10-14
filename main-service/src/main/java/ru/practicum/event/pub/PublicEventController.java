@@ -27,7 +27,6 @@ public class PublicEventController {
     private final PublicEventService publicEventService;
     private final StatsClient statsClient;
 
-
     @GetMapping("/{id}")
     public EventFullDto getPublishedEventById(@PathVariable long id, HttpServletRequest request) {
         log.info("Запрос на получение информации об опубликованном событии с ID {}", id);

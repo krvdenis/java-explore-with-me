@@ -48,6 +48,4 @@ public class AdminEventController {
         log.info("Запрос администратора на получение событий с фильтрацией");
         return adminEventService.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
     }
-
-
 }

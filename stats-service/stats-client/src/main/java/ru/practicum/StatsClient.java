@@ -15,7 +15,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -31,18 +30,12 @@ public class StatsClient {
     private static final String PARAM_UNIQUE = "unique";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final RestTemplate rest;
-    private final String serverUrl;
 
     @Autowired
     public StatsClient(@Value("${stats-server.url}") String serverUrl, RestTemplateBuilder builder) {
         log.info("Инициализация StatsClient. Базовый URL сервера статистики: {}", serverUrl);
-        this.serverUrl = serverUrl;
-
-        DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(serverUrl);
-        uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-
         rest = builder
-                .uriTemplateHandler(uriBuilderFactory)
+                .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                 .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                 .build();
     }
@@ -69,7 +62,7 @@ public class StatsClient {
                                                        List<String> uris,
                                                        boolean unique) {
         log.info("Запрос статистики за период с {} по {}", start, end);
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(serverUrl + STATS_PATH)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(STATS_PATH)
                 .queryParam(PARAM_START, start.format(FORMATTER))
                 .queryParam(PARAM_END, end.format(FORMATTER));
 
@@ -80,11 +73,11 @@ public class StatsClient {
         }
         builder.queryParam(PARAM_UNIQUE, unique);
 
-        URI targetUri = builder.encode().build().toUri();
-        log.debug("Сформированный полный закодированный URI для запроса статистики: {}", targetUri);
+        String relativeUri = builder.build().toUriString();
+        log.debug("Сформированный относительный URI для запроса статистики: {}", relativeUri);
 
         try {
-            ResponseEntity<ViewStatsDto[]> response = rest.getForEntity(targetUri, ViewStatsDto[].class);
+            ResponseEntity<ViewStatsDto[]> response = rest.getForEntity(relativeUri, ViewStatsDto[].class);
             List<ViewStatsDto> body = response.getBody() != null ? List.of(response.getBody()) : List.of();
 
             log.info("Получен ответ от сервера статистики. Статус: {}. Количество элементов: {}",

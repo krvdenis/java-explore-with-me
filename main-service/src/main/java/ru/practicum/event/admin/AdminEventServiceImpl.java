@@ -205,7 +205,6 @@ public class AdminEventServiceImpl implements AdminEventService {
             builder.and(qEvent.category.id.in(filteredCategories));
         }
 
-
         if (rangeStart != null & rangeEnd != null) {
             builder.and(qEvent.eventDate.between(rangeStart, rangeEnd));
         }

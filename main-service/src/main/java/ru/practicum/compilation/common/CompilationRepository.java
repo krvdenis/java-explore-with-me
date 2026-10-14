@@ -15,7 +15,6 @@ public interface CompilationRepository extends JpaRepository<Compilation, Long> 
     @NonNull
     Optional<Compilation> findById(@NonNull Long id);
 
-
     @EntityGraph(attributePaths = {"events", "events.category", "events.initiator"})
     Page<Compilation> findAllByPinned(Boolean pinned, Pageable pageable);
 

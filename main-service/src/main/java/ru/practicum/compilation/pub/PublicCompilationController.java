@@ -35,5 +35,4 @@ public class PublicCompilationController {
         log.info("Запрос на получение информации о подборке с ID {}", compId);
         return compilationService.getCompilationById(compId);
     }
-
 }

@@ -93,7 +93,6 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         return eventFullDto;
     }
 
-
     @Override
     public List<EventShortDto> getOwnedEvents(long userId, int from, int size) {
         log.info("Получен запрос на просмотр списка событий пользователя c ID: {} (от: {}, размер: {})", userId, from,
@@ -176,7 +175,6 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         log.info("Событие ID: {} пользователя ID: {} успешно обновлено", eventId, userId);
         return eventFullDto;
     }
-
 
     @Override
     public List<ParticipationRequestDto> getEventRequestsForInitiator(long userId, long eventId) {

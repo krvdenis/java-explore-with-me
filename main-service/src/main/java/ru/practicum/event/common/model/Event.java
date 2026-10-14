@@ -89,7 +89,6 @@ public class Event {
         if (this.state != EventState.PENDING) {
             throw new ConditionsNotMetException("Cannot publish the event because it is not in PENDING state.");
         }
-
     }
 
     public void validateCanBeRejected() {
@@ -99,8 +98,7 @@ public class Event {
     }
 
     public boolean isParticipantLimitReached() {
-        return this.participantLimit > 0
-                && this.confirmedRequests >= this.participantLimit;
+        return this.participantLimit > 0 && this.confirmedRequests >= this.participantLimit;
     }
 
     public void incrementConfirmedRequests() {
