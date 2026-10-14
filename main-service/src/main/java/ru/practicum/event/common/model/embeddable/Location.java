@@ -21,8 +21,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Location {
     @Column(name = "lat", nullable = false)
-    private Float lat;
+    Float lat;
 
     @Column(name = "lon", nullable = false)
-    private Float lon;
+    Float lon;
 }
