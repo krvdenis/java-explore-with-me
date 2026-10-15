@@ -1,0 +1,49 @@
+CREATE TABLE IF NOT EXISTS users(
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    name VARCHAR(250) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS categories(
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS events (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    annotation VARCHAR(2000) NOT NULL CHECK(LENGTH(annotation) >= 20),
+    category_id BIGINT NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+    confirmed_requests BIGINT,
+    created_on TIMESTAMP NOT NULL,
+    description VARCHAR(7000) NOT NULL CHECK(LENGTH(description) >= 20),
+    event_date TIMESTAMP NOT NULL,
+    initiator_id BIGINT NOT NULL REFERENCES users(id),
+    lat FLOAT NOT NULL,
+    lon FLOAT NOT NULL,
+    paid BOOLEAN NOT NULL DEFAULT FALSE,
+    participant_limit BIGINT NOT NULL DEFAULT 0,
+    published_on TIMESTAMP,
+    request_moderation BOOLEAN NOT NULL DEFAULT TRUE,
+    state VARCHAR(15) NOT NULL,
+    title VARCHAR(120) NOT NULL CHECK (LENGTH(title) >= 3)
+);
+
+CREATE TABLE IF NOT EXISTS participation_requests(
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    created TIMESTAMP NOT NULL,
+    event_id BIGINT NOT NULL REFERENCES events(id),
+    requester_id BIGINT NOT NULL REFERENCES users(id),
+    status VARCHAR(15) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS compilations (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    pinned BOOLEAN NOT NULL DEFAULT FALSE,
+    title VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS compilations_events (
+    compilation_id BIGINT REFERENCES compilations(id) ON DELETE CASCADE,
+    event_id BIGINT REFERENCES events(id) ON DELETE CASCADE,
+    PRIMARY KEY(compilation_id, event_id)
+);

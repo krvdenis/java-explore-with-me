@@ -1,5 +1,7 @@
 package ru.practicum;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,7 @@ import java.util.List;
 
 @Service
 @Slf4j
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class StatsClient {
     private static final String STATS_PATH = "/stats";
     private static final String HIT_PATH = "/hit";
@@ -29,7 +32,7 @@ public class StatsClient {
     private static final String PARAM_URIS = "uris";
     private static final String PARAM_UNIQUE = "unique";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private final RestTemplate rest;
+    RestTemplate rest;
 
     @Autowired
     public StatsClient(@Value("${stats-server.url}") String serverUrl, RestTemplateBuilder builder) {
