@@ -30,6 +30,7 @@ import java.util.Set;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Compilation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -47,6 +48,6 @@ public class Compilation {
     @Column(nullable = false)
     Boolean pinned = false;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     String title;
 }

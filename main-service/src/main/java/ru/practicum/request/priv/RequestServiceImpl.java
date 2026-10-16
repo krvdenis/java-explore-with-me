@@ -203,7 +203,7 @@ public class RequestServiceImpl implements RequestService {
                     "their own event.");
         }
 
-        if (!(event.getState() == EventState.PUBLISHED)) {
+        if (event.getState() != EventState.PUBLISHED) {
             log.warn("Валидация провалена: событие ID: {} не опубликовано (текущий статус: {})", eventId,
                     event.getState());
             throw new ConditionsNotMetException("You cannot participate in an unpublished event.");
