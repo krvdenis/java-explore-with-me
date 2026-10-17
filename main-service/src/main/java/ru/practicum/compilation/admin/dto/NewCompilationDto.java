@@ -3,13 +3,11 @@ package ru.practicum.compilation.admin.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.Value;
 
 import java.util.Set;
 
 @Value
-@ToString
 @NoArgsConstructor(force = true)
 public class NewCompilationDto {
     Set<Long> events;

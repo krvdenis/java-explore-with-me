@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Event {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -82,7 +83,7 @@ public class Event {
     @Column(nullable = false, length = 15)
     EventState state;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 120)
     String title;
 
     public void validateCanBePublished(LocalDateTime timeToPublish) {
