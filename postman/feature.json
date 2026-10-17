@@ -59,7 +59,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r\n    pm.response.to.have.status(201);\r\n    pm.response.to.be.withBody;\r\n    pm.response.to.be.json;\r\n});"
+              "pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r\n    pm.response.to.have.status(201);\r\n    pm.response.to.be.withBody;\r\n    pm.response.to.be.json;\r\n});\r\n\r\nconst target = pm.response.json();\r\n\r\npm.test(\"Категория должна содержать поле id\", () => {\r\n    pm.expect(target).to.have.property('id');\r\n});\r\n\r\npm.collectionVariables.set(\"categoryId\", target.id);"
             ]
           }
         }
@@ -108,7 +108,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"annotation\": \"Dolor quis excepturi repudiandae est dolores eligendi distinctio. Odio quas et qui porro tempore quas vel veniam. Quis accusantium voluptatem libero est. Sunt architecto et numquam sapiente quos vero. Dolores voluptate enim in sit est sunt. Ut ducimus itaque necessitatibus architecto animi atque dolorem accusamus.\",\r\n    \"category\": 1,\r\n    \"description\": \"Officia aspernatur sint magni. Consectetur et esse accusamus et officia. Ut dolore ratione unde et. Explicabo blanditiis velit.\\n \\rEligendi dolorem blanditiis reiciendis eos similique voluptatem expedita et repudiandae. Voluptates sint maiores sequi nam. In harum quia unde ducimus voluptas maxime aperiam adipisci et.\\n \\rPossimus quis necessitatibus vel veritatis magni repellendus ipsa provident. Repudiandae corporis dolor consequatur qui aut voluptas provident et maxime. Deleniti dolorum veniam repellat et qui ut.\",\r\n    \"eventDate\": \"2027-10-16 12:10:52\",\r\n    \"location\": {\r\n        \"lat\": 23.2628,\r\n        \"lon\": -109.0184\r\n    },\r\n    \"paid\": true,\r\n    \"participantLimit\": 0,\r\n    \"requestModeration\": false,\r\n    \"title\": \"Omnis quia ut cum deleniti architecto quo.\"\r\n}",
+          "raw": "{\r\n    \"annotation\": \"Dolor quis excepturi repudiandae est dolores eligendi distinctio. Odio quas et qui porro tempore quas vel veniam. Quis accusantium voluptatem libero est. Sunt architecto et numquam sapiente quos vero. Dolores voluptate enim in sit est sunt. Ut ducimus itaque necessitatibus architecto animi atque dolorem accusamus.\",\r\n    \"category\": {{categoryId}},\r\n    \"description\": \"Officia aspernatur sint magni. Consectetur et esse accusamus et officia. Ut dolore ratione unde et. Explicabo blanditiis velit.\\n \\rEligendi dolorem blanditiis reiciendis eos similique voluptatem expedita et repudiandae. Voluptates sint maiores sequi nam. In harum quia unde ducimus voluptas maxime aperiam adipisci et.\\n \\rPossimus quis necessitatibus vel veritatis magni repellendus ipsa provident. Repudiandae corporis dolor consequatur qui aut voluptas provident et maxime. Deleniti dolorum veniam repellat et qui ut.\",\r\n    \"eventDate\": \"2027-10-16 12:10:52\",\r\n    \"location\": {\r\n        \"lat\": 23.2628,\r\n        \"lon\": -109.0184\r\n    },\r\n    \"paid\": true,\r\n    \"participantLimit\": 0,\r\n    \"requestModeration\": false,\r\n    \"title\": \"Omnis quia ut cum deleniti architecto quo.\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -148,7 +148,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"annotation\": \"Dolor quis excepturi repudiandae est dolores eligendi distinctio. Odio quas et qui porro tempore quas vel veniam. Quis accusantium voluptatem libero est. Sunt architecto et numquam sapiente quos vero. Dolores voluptate enim in sit est sunt. Ut ducimus itaque necessitatibus architecto animi atque dolorem accusamus.\",\r\n    \"category\": 1,\r\n    \"description\": \"Officia aspernatur sint magni. Consectetur et esse accusamus et officia. Ut dolore ratione unde et. Explicabo blanditiis velit.\\n \\rEligendi dolorem blanditiis reiciendis eos similique voluptatem expedita et repudiandae. Voluptates sint maiores sequi nam. In harum quia unde ducimus voluptas maxime aperiam adipisci et.\\n \\rPossimus quis necessitatibus vel veritatis magni repellendus ipsa provident. Repudiandae corporis dolor consequatur qui aut voluptas provident et maxime. Deleniti dolorum veniam repellat et qui ut.\",\r\n    \"eventDate\": \"2027-10-16 12:10:52\",\r\n    \"location\": {\r\n        \"lat\": 23.2628,\r\n        \"lon\": -109.0184\r\n    },\r\n    \"paid\": true,\r\n    \"participantLimit\": 0,\r\n    \"requestModeration\": false,\r\n    \"stateAction\": \"PUBLISH_EVENT\", \r\n    \"title\": \"Omnis quia ut cum deleniti architecto quo.\"\r\n}",
+          "raw": "{\r\n    \"annotation\": \"Dolor quis excepturi repudiandae est dolores eligendi distinctio. Odio quas et qui porro tempore quas vel veniam. Quis accusantium voluptatem libero est. Sunt architecto et numquam sapiente quos vero. Dolores voluptate enim in sit est sunt. Ut ducimus itaque necessitatibus architecto animi atque dolorem accusamus.\",\r\n    \"category\": {{categoryId}},\r\n    \"description\": \"Officia aspernatur sint magni. Consectetur et esse accusamus et officia. Ut dolore ratione unde et. Explicabo blanditiis velit.\\n \\rEligendi dolorem blanditiis reiciendis eos similique voluptatem expedita et repudiandae. Voluptates sint maiores sequi nam. In harum quia unde ducimus voluptas maxime aperiam adipisci et.\\n \\rPossimus quis necessitatibus vel veritatis magni repellendus ipsa provident. Repudiandae corporis dolor consequatur qui aut voluptas provident et maxime. Deleniti dolorum veniam repellat et qui ut.\",\r\n    \"eventDate\": \"2027-10-16 12:10:52\",\r\n    \"location\": {\r\n        \"lat\": 23.2628,\r\n        \"lon\": -109.0184\r\n    },\r\n    \"paid\": true,\r\n    \"participantLimit\": 0,\r\n    \"requestModeration\": false,\r\n    \"stateAction\": \"PUBLISH_EVENT\", \r\n    \"title\": \"Omnis quia ut cum deleniti architecto quo.\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -222,7 +222,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test(\"Ответ должен содержать код статуса 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\n"
+              "pm.test(\"Ответ должен содержать код статуса 404\", function () {\r\n    pm.response.to.be.notFound;\r\n});\r\n\r\n"
             ]
           }
         }
@@ -538,7 +538,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "    const body = pm.response.json();\r\n\r\npm.test(\"Ответ должен содержать код статуса 200 и список комментариев в формате json\", () => {\r\n    pm.response.to.be.ok;  \r\n    pm.response.to.be.withBody;\r\n    pm.response.to.be.json;\r\n    pm.expect(body).is.an('array');\r\n});"
+              "pm.test(\"Ответ должен содержать код статуса 200 и список комментариев в формате json\", () => {\r\n    pm.response.to.be.ok;  \r\n    pm.response.to.be.withBody;\r\n    pm.response.to.be.json;\r\n\r\n    const body = pm.response.json();\r\n    pm.expect(body).is.an('array');\r\n});"
             ]
           }
         }
@@ -612,7 +612,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test(\"Ответ должен содержать код статуса 404\", () => {\r\n    pm.response.to.be.notFound  \r\n});"
+              "pm.test(\"Ответ должен содержать код статуса 404\", () => {\r\n    pm.response.to.be.notFound;\r\n});"
             ]
           }
         }
@@ -763,6 +763,10 @@
     },
     {
       "key": "commentByInitiatorId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
       "value": ""
     }
   ]
