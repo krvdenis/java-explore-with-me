@@ -31,12 +31,13 @@ public class PrivateCommentServiceImpl implements PrivateCommentService {
     @Override
     public CommentDto createComment(long userId, long eventId, CommentRequestDto newCommentDto) {
         log.info("Получен запрос на создание комментария от пользователя с ID {} к событию с ID {}", userId, eventId);
-        log.debug("Данные нового комментария: {}", newCommentDto);
+        log.debug("Данные нового комментария: {}. Пользователь с ID {}, событие с ID {}.", newCommentDto, userId,
+                eventId);
 
         Event event = publicEventService.getEventById(eventId);
 
         if (event.getState() != EventState.PUBLISHED) {
-            log.warn("Ошибка создания комментария: событие с ID={} не опубликовано (текущий статус: {})",
+            log.warn("Ошибка создания комментария: событие с ID {} не опубликовано (текущий статус: {})",
                     eventId, event.getState());
             throw new ConditionsNotMetException(String.format("Cannot add a comment because the event is " +
                     "not published (current state: %s.)", event.getState()));
@@ -55,14 +56,15 @@ public class PrivateCommentServiceImpl implements PrivateCommentService {
 
     @Override
     public CommentDto updateComment(long userId, long commentId, CommentRequestDto updateCommentDto) {
-        log.info("Получен запрос на обновление комментария с ID={} от пользователя с ID={}", commentId, userId);
-        log.debug("Данные обновления комментария: {}", updateCommentDto);
+        log.info("Получен запрос на обновление комментария с ID {} от пользователя с ID={}", commentId, userId);
+        log.debug("Данные обновления комментария: {}. Пользователь с ID {}, комментарий с ID {}.", updateCommentDto,
+                userId, commentId);
 
         Comment comment = getComment(commentId);
         validateCommentAuthor(userId, commentId, comment);
 
         CommentMapper.updateCommentFields(comment, updateCommentDto);
-        log.info("Комментарий с ID={} успешно обновлен пользователем с ID={}", commentId, userId);
+        log.info("Комментарий с ID {} успешно обновлен пользователем с ID {}", commentId, userId);
 
         return CommentMapper.mapToDto(comment);
     }
@@ -79,10 +81,10 @@ public class PrivateCommentServiceImpl implements PrivateCommentService {
     }
 
     private Comment getComment(long commentId) {
-        log.debug("Запрос комментария с ID={} из репозитория", commentId);
+        log.debug("Запрос комментария с ID {} из репозитория", commentId);
         return commentRepository.findById(commentId)
                 .orElseThrow(() -> {
-                    log.warn("Комментарий с ID={} не найден в базе данных", commentId);
+                    log.warn("Комментарий с ID {} не найден в базе данных", commentId);
                     return new NotFoundException(String.format("Comment with ID %d was not found", commentId));
                 });
     }
