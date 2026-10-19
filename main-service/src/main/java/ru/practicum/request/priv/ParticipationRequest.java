@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ParticipationRequest {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -47,7 +48,7 @@ public class ParticipationRequest {
     @JoinColumn(name = "requester_id", nullable = false)
     User requester;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 15)
     @Enumerated(EnumType.STRING)
     RequestStatus status;
 }

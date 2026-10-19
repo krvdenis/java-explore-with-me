@@ -4,13 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.Value;
 
 @Value
-@ToString
 @NoArgsConstructor(force = true)
 public class NewUserRequest {
+
     @NotBlank
     @Email
     @Size(max = 254, message = "The email must not exceed 254 characters.")

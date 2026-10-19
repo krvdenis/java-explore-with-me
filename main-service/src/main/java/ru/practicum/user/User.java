@@ -25,13 +25,14 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 254)
     String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 250)
     String name;
 }

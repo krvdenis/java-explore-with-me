@@ -24,4 +24,6 @@ public interface PublicEventService {
             int size
     );
 
+    void checkEventExists(long id);
+
 }

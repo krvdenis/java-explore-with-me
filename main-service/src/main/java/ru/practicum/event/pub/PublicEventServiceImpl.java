@@ -151,6 +151,16 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .toList();
     }
 
+    @Override
+    public void checkEventExists(long id) {
+        log.info("Проверка существования события с ID: {}", id);
+
+        if (!eventRepository.existsById(id)) {
+            log.warn("Ошибка проверки: событие с ID {} не зарегистрировано в системе", id);
+            throw new NotFoundException(String.format("Event with ID %s not found", id));
+        }
+    }
+
     private void buildQuery(
             String text,
             Boolean paid,
