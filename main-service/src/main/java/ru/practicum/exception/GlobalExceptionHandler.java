@@ -3,6 +3,8 @@ package ru.practicum.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -16,7 +18,33 @@ import java.util.List;
 
 @RestControllerAdvice
 @Slf4j
-public class ErrorHandler {
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiError handleAuthenticationException(AuthenticationException e) {
+        log.warn("Ошибка аутентификации (401 Unauthorized): {}", e.getMessage());
+        return ApiError.builder()
+                .status(HttpStatus.UNAUTHORIZED.name())
+                .reason("User authentication failed.")
+                .message(e.getMessage())
+                .errors(List.of())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiError handleAccessDeniedException(AccessDeniedException e) {
+        log.warn("Отказ в доступе (403 Forbidden): {}", e.getMessage());
+        return ApiError.builder()
+                .status(HttpStatus.FORBIDDEN.name())
+                .reason("Access denied for this resource.")
+                .message(e.getMessage())
+                .errors(List.of())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)

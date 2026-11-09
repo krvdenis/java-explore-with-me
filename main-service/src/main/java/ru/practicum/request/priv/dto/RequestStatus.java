@@ -1,4 +1,4 @@
-package ru.practicum.request.priv;
+package ru.practicum.request.priv.dto;
 
 public enum RequestStatus {
     PENDING,

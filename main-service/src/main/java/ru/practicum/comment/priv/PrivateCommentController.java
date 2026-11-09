@@ -21,11 +21,12 @@ import static ru.practicum.util.Constants.PATH_COMMENTS;
 import static ru.practicum.util.Constants.PATH_COMMENT_ID;
 import static ru.practicum.util.Constants.PATH_EVENTS;
 import static ru.practicum.util.Constants.PATH_EVENT_ID;
+import static ru.practicum.util.Constants.PATH_USERS;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping
+@RequestMapping(PATH_USERS)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PrivateCommentController {
     PrivateCommentService commentService;

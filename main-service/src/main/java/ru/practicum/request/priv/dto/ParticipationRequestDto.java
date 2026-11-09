@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.request.priv.RequestStatus;
 import ru.practicum.util.Constants;
 
 import java.time.LocalDateTime;

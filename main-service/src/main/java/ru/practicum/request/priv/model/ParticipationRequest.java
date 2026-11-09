@@ -1,4 +1,4 @@
-package ru.practicum.request.priv;
+package ru.practicum.request.priv.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +19,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.event.common.model.Event;
-import ru.practicum.user.User;
+import ru.practicum.request.priv.dto.RequestStatus;
+import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 

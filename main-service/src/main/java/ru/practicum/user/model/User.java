@@ -1,7 +1,9 @@
-package ru.practicum.user;
+package ru.practicum.user.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,9 +32,28 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(nullable = false, length = 254)
+    @Column(nullable = false, unique = true, length = 254)
     String email;
 
     @Column(nullable = false, length = 250)
     String name;
+
+    @Column(nullable = false, length = 100)
+    String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 15)
+    UserRole role;
+
+    public boolean isSimpleUser() {
+        return this.role == UserRole.USER;
+    }
+
+    public boolean isAdmin() {
+        return this.role == UserRole.ADMIN;
+    }
+
+    public boolean isSuperAdmin() {
+        return this.role == UserRole.SUPER_ADMIN;
+    }
 }

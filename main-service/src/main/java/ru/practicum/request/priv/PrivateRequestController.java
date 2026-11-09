@@ -42,7 +42,8 @@ public class PrivateRequestController {
 
     @GetMapping
     public List<ParticipationRequestDto> getAllRequests(@PathVariable long userId) {
-        log.info("Запрос на получение информации о заявках пользователя с ID {} на участие в чужих событиях", userId);
+        log.info("Запрос на получение информации о своих заявках пользователя с ID {} на участие в чужих событиях",
+                userId);
         return requestService.getAll(userId);
     }
 

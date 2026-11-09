@@ -1,4 +1,4 @@
-package ru.practicum.user;
+package ru.practicum.user.admin;
 
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,10 +18,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
+import ru.practicum.user.model.UserRole;
 
 import java.util.List;
 
 import static ru.practicum.util.Constants.PATH_ADMIN;
+import static ru.practicum.util.Constants.PATH_REJECT;
+import static ru.practicum.util.Constants.PATH_REQUESTS;
+import static ru.practicum.util.Constants.PATH_REQUEST_ID;
 import static ru.practicum.util.Constants.PATH_USERS;
 import static ru.practicum.util.Constants.PATH_USER_ID;
 
@@ -30,13 +35,31 @@ import static ru.practicum.util.Constants.PATH_USER_ID;
 @RequestMapping(PATH_ADMIN + PATH_USERS)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AdminUserController {
-    UserService userService;
+    AdminUserService adminUserService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@Valid @RequestBody NewUserRequest newUserRequest) {
+    public UserDto createUser(
+            @Valid @RequestBody NewUserRequest newUserRequest,
+            @RequestParam(defaultValue = "USER") UserRole role) {
         log.info("Запрос на создание пользователя {}", newUserRequest);
-        return userService.createUser(newUserRequest);
+        return adminUserService.createUser(newUserRequest);
+    }
+
+    @PostMapping(PATH_REQUESTS + PATH_REQUEST_ID)
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto createUserFromRequest(
+            @PathVariable long requestId,
+            @RequestParam(defaultValue = "USER") UserRole role) {
+        log.info("Запрос на создание пользователя по запросу с ID {}", requestId);
+        return adminUserService.createUserFromRequest(requestId, role);
+    }
+
+    @PatchMapping(PATH_REQUESTS + PATH_REQUEST_ID + PATH_REJECT)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void rejectRequest(@PathVariable long requestId) {
+        log.info("Запрос на отклонение запроса с ID {} на регистрацию пользователя", requestId);
+        adminUserService.rejectRequest(requestId);
     }
 
     @GetMapping
@@ -45,13 +68,15 @@ public class AdminUserController {
             @RequestParam(defaultValue = "0") int from,
             @RequestParam(defaultValue = "10") int size) {
         log.info("Запрос на получение списка пользователей по их ID, from = {}, size = {}", from, size);
-        return userService.getUsers(ids, from, size);
+        return adminUserService.getUsers(ids, from, size);
     }
 
     @DeleteMapping(PATH_USER_ID)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUserById(@PathVariable long userId) {
         log.info("Запрос на удаление пользователя с ID {}", userId);
-        userService.deleteUserById(userId);
+        adminUserService.deleteUserById(userId);
     }
+
+    //реализовать выдачу админки
 }

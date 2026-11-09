@@ -28,8 +28,9 @@ import ru.practicum.request.priv.RequestService;
 import ru.practicum.request.priv.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.priv.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.priv.dto.ParticipationRequestDto;
-import ru.practicum.user.User;
-import ru.practicum.user.UserService;
+import ru.practicum.security.SecurityChecker;
+import ru.practicum.user.model.User;
+import ru.practicum.user.admin.AdminUserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,17 +49,20 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     private static final int MIN_HOURS_BEFORE_EVENT = 2;
 
     EventRepository eventRepository;
-    UserService userService;
+    AdminUserService adminUserService;
     PublicCategoryService categoryService;
     RequestService requestService;
     EventStatsHelper eventStatsHelper;
+    SecurityChecker securityChecker;
 
     @Override
     @Transactional
     public EventFullDto createEvent(long userId, NewEventDto newEventDto) {
         log.info("Получен запрос на создание события от пользователя с ID: {}", userId);
 
-        User user = userService.getUserById(userId);
+        securityChecker.checkResourceOwner(userId);
+
+        User user = adminUserService.getUserById(userId);
         Category category = categoryService.getCategoryById(newEventDto.getCategory());
 
         validateEventDate(newEventDto.getEventDate());
@@ -85,6 +89,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         log.info("Получен запрос от пользователя с ID: {} на просмотр полной информации о своем событии ID: {}",
                 userId, eventId);
 
+        securityChecker.checkResourceOwner(userId);
+
         Event event = getOwnedEventById(userId, eventId);
         EventFullDto eventFullDto = EventMapper.mapToFullDto(event);
         eventFullDto.setViews(eventStatsHelper.getViewsCountForOneEvent(event));
@@ -98,8 +104,9 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         log.info("Получен запрос на просмотр списка событий пользователя c ID: {} (от: {}, размер: {})", userId, from,
                 size);
 
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("eventDate"));
+        securityChecker.checkResourceOwner(userId);
 
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("eventDate"));
         Map<Long, EventShort> eventMap = eventRepository.findAllByInitiatorId(userId, pageable).getContent().stream()
                 .collect(Collectors.toMap(EventShort::getId, Function.identity()));
 
@@ -144,8 +151,9 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     public EventFullDto updateEvent(long userId, long eventId, UpdateEventUserRequest updateEventUserRequest) {
         log.info("Получен запрос на обновление события c ID: {} пользователем ID: {}", eventId, userId);
 
-        Event event = getOwnedEventById(userId, eventId);
+        securityChecker.checkResourceOwner(userId);
 
+        Event event = getOwnedEventById(userId, eventId);
         validateEventState(event);
 
         if (updateEventUserRequest.getEventDate() != null) {
@@ -180,6 +188,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     public List<ParticipationRequestDto> getEventRequestsForInitiator(long userId, long eventId) {
         log.info("Получен запрос от инициатора события с ID: {} на выгрузку заявок к событию ID: {}", userId, eventId);
 
+        securityChecker.checkResourceOwner(userId);
+
         if (!eventRepository.existsByIdAndInitiatorId(eventId, userId)) {
             log.warn("Событие ID: {} с инициатором ID: {} не существует", eventId, userId);
             throw new NotFoundException(String.format("Event with ID %s was not found", eventId));
@@ -198,6 +208,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             EventRequestStatusUpdateRequest statusUpdateRequest) {
         log.info("Получен запрос от инициатора события с ID: {} на изменение статуса заявок к событию ID: {} на {}",
                 userId, eventId, statusUpdateRequest.getStatus());
+
+        securityChecker.checkResourceOwner(userId);
 
         Event event = getOwnedEventById(userId, eventId);
 

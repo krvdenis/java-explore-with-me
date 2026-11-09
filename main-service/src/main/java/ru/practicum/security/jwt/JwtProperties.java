@@ -1,0 +1,18 @@
+package ru.practicum.security.jwt;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.FieldDefaults;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConfigurationProperties(prefix = "app.jwt")
+@Getter
+@Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class JwtProperties {
+    String secret;
+    long expirationMs;
+}

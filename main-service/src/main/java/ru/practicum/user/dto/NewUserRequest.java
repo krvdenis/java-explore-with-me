@@ -20,4 +20,9 @@ public class NewUserRequest {
     @Size(min = 2, message = "The name must be at least 2 characters long.")
     @Size(max = 250, message = "The name must not exceed 250 characters.")
     String name;
+
+    @NotBlank
+    @Size(min = 6, message = "The password must be at least 6 characters long.")
+    @Size(max = 20, message = "The password must not exceed 100 characters.")
+    String password;
 }

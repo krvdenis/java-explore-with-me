@@ -24,7 +24,7 @@ import ru.practicum.category.common.Category;
 import ru.practicum.event.common.EventState;
 import ru.practicum.event.common.model.embeddable.Location;
 import ru.practicum.exception.ConditionsNotMetException;
-import ru.practicum.user.User;
+import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 

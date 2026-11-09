@@ -3,6 +3,7 @@ package ru.practicum.util;
 import java.time.LocalDateTime;
 
 public class Constants {
+    public static final String PATH_SUPER_ADMIN = "/super-admin";
     public static final String PATH_ADMIN = "/admin";
     public static final String PATH_USER_ID = "/{userId}";
     public static final String PATH_USERS = "/users";
@@ -17,6 +18,7 @@ public class Constants {
     public static final String PATH_COMPILATION_ID = "/{compId}";
     public static final String PATH_COMMENTS = "/comments";
     public static final String PATH_COMMENT_ID = "/{commentId}";
+    public static final String PATH_REJECT = "/reject";
     public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     public static final LocalDateTime START_OF_TIME = LocalDateTime.of(2020, 1, 1, 0,
             0);

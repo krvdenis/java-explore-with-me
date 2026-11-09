@@ -14,8 +14,11 @@ import ru.practicum.exception.NotFoundException;
 import ru.practicum.request.priv.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.priv.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.priv.dto.ParticipationRequestDto;
-import ru.practicum.user.User;
-import ru.practicum.user.UserService;
+import ru.practicum.request.priv.dto.RequestStatus;
+import ru.practicum.request.priv.model.ParticipationRequest;
+import ru.practicum.security.SecurityChecker;
+import ru.practicum.user.model.User;
+import ru.practicum.user.admin.AdminUserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,14 +33,17 @@ import java.util.Objects;
 public class RequestServiceImpl implements RequestService {
     RequestRepository requestRepository;
     PublicEventService eventService;
-    UserService userService;
+    AdminUserService adminUserService;
+    SecurityChecker securityChecker;
 
     @Override
     public ParticipationRequestDto create(long userId, long eventId) {
         log.info("Получен запрос на создание заявки на участие от пользователя ID: {} для события ID: {}", userId,
                 eventId);
 
-        User user = userService.getUserById(userId);
+        securityChecker.checkResourceOwner(userId);
+
+        User user = adminUserService.getUserById(userId);
         Event event = eventService.getEventById(eventId);
         log.info("Количество свободных мест для заявок - {}",
                 event.getParticipantLimit() - event.getConfirmedRequests());
@@ -45,7 +51,6 @@ public class RequestServiceImpl implements RequestService {
         validateParticipationRequest(userId, eventId, event);
 
         boolean isAutoConfirm = false;
-
         if (event.getParticipantLimit() == 0) {
             isAutoConfirm = true;
         } else if (event.getRequestModeration().equals(Boolean.FALSE)) {
@@ -78,7 +83,7 @@ public class RequestServiceImpl implements RequestService {
     public List<ParticipationRequestDto> getAll(long userId) {
         log.info("Получен запрос на получение всех заявок пользователя с ID: {}", userId);
 
-        userService.checkUserExists(userId);
+        securityChecker.checkResourceOwner(userId);
 
         List<ParticipationRequest> requests = requestRepository.findAllByRequesterIdOrderByCreatedDesc(userId);
         log.info("Найдено {} заявок пользователя с ID: {}", requests.size(), userId);
@@ -91,6 +96,8 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public ParticipationRequestDto cancelRequestById(long userId, long requestId) {
         log.info("Получен запрос от пользователя с ID: {} на отмену заявки с ID: {}", userId, requestId);
+
+        securityChecker.checkResourceOwner(userId);
 
         ParticipationRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> {

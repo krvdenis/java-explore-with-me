@@ -9,7 +9,7 @@ import ru.practicum.event.common.dto.EventShortDto;
 import ru.practicum.event.common.model.Event;
 import ru.practicum.event.priv.dto.NewEventDto;
 import ru.practicum.event.priv.dto.UpdateEventUserRequest;
-import ru.practicum.user.UserMapper;
+import ru.practicum.user.common.UserMapper;
 
 import java.time.LocalDateTime;
 

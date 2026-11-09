@@ -15,8 +15,9 @@ import ru.practicum.event.common.model.Event;
 import ru.practicum.event.pub.PublicEventService;
 import ru.practicum.exception.ConditionsNotMetException;
 import ru.practicum.exception.NotFoundException;
-import ru.practicum.user.User;
-import ru.practicum.user.UserService;
+import ru.practicum.security.SecurityChecker;
+import ru.practicum.user.model.User;
+import ru.practicum.user.admin.AdminUserService;
 
 @Service
 @Transactional
@@ -26,13 +27,16 @@ import ru.practicum.user.UserService;
 public class PrivateCommentServiceImpl implements PrivateCommentService {
     CommentRepository commentRepository;
     PublicEventService publicEventService;
-    UserService userService;
+    AdminUserService adminUserService;
+    SecurityChecker securityChecker;
 
     @Override
     public CommentDto createComment(long userId, long eventId, CommentRequestDto newCommentDto) {
         log.info("Получен запрос на создание комментария от пользователя с ID {} к событию с ID {}", userId, eventId);
         log.debug("Данные нового комментария: {}. Пользователь с ID {}, событие с ID {}.", newCommentDto, userId,
                 eventId);
+
+        securityChecker.checkResourceOwner(userId);
 
         Event event = publicEventService.getEventById(eventId);
 
@@ -43,7 +47,7 @@ public class PrivateCommentServiceImpl implements PrivateCommentService {
                     "not published (current state: %s.)", event.getState()));
         }
 
-        User author = userService.getUserById(userId);
+        User author = adminUserService.getUserById(userId);
         Comment comment = CommentMapper.toComment(newCommentDto);
         comment.setEvent(event);
         comment.setAuthor(author);
@@ -60,6 +64,8 @@ public class PrivateCommentServiceImpl implements PrivateCommentService {
         log.debug("Данные обновления комментария: {}. Пользователь с ID {}, комментарий с ID {}.", updateCommentDto,
                 userId, commentId);
 
+        securityChecker.checkResourceOwner(userId);
+
         Comment comment = getComment(commentId);
         validateCommentAuthor(userId, commentId, comment);
 
@@ -72,6 +78,8 @@ public class PrivateCommentServiceImpl implements PrivateCommentService {
     @Override
     public void deleteCommentById(long userId, long commentId) {
         log.info("Получен запрос на удаление комментария с ID={} от пользователя с ID={}", commentId, userId);
+
+        securityChecker.checkResourceOwner(userId);
 
         Comment comment = getComment(commentId);
         validateCommentAuthor(userId, commentId, comment);

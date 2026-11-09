@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
-import ru.practicum.request.priv.RequestStatus;
 
 import java.util.List;
 

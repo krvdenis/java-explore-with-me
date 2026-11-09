@@ -23,9 +23,17 @@ spring:
   mvc:
     format:
       date-time: "yyyy-MM-dd HH:mm:ss"
+  mail:
+    host: mailhog
+    port: 1025
 
 server:
   port: 8080
+
+app:
+  jwt:
+    secret: "v-super-secret-key-32-characters-minimum-for-ewm-project-2026"
+    expiration-ms: 3600000
 
 logging:
   level:
