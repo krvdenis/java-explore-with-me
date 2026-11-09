@@ -66,6 +66,6 @@ services:
     image: mailhog/mailhog:latest
     container_name: mailhog
     ports:
-      - "1025:1025"  # SMTP-порт, куда наше Spring-приложение шлет письма
-      - "8025:8025"  # Веб-интерфейс (админка), куда вы заходите в браузере
+      - "1025:1025"
+      - "8025:8025"
     restart: unless-stopped
